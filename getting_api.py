@@ -1,4 +1,5 @@
 import requests
+import sqlite3
 
 BASE_URL = "https://api.trakt.tv"
 
@@ -20,3 +21,30 @@ def get_trending_movies():
 movies = get_trending_movies()
 for movie in movies[:5]: 
     print(movie["title"])
+
+def setup_database():
+    conn = sqlite3.connect("trakt_data.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS movies (
+            id INTEGER PRIMARY KEY,
+            title TEXT NOT NULL,
+            year INTEGER,
+            overview TEXT
+        )
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS genres (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            movie_id INTEGER NOT NULL,
+            genre TEXT NOT NULL,
+            FOREIGN KEY (movie_id) REFERENCES movies (id)
+        )
+    """)
+
+    conn.commit()
+    conn.close()
+
+setup_database()

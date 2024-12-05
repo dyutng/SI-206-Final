@@ -12,7 +12,7 @@ def get_json_content(filename):
         filename: name of file to be opened
 
     RETURNS: 
-        json dictionary OR an empty dict if the file could not be opened 
+
     '''
     try:
         with open(filename, 'r') as file:

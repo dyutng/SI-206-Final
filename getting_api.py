@@ -48,3 +48,25 @@ def setup_database():
     conn.close()
 
 setup_database()
+
+def calculate_genres_count():
+    conn = sqlite3.connect("trakt_data.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT g.genre, COUNT(*) as count
+        FROM genres g
+        JOIN movies m ON g.movie_id = m.id
+        GROUP BY g.genre
+        ORDER BY count DESC
+    """)
+
+    results = cursor.fetchall()
+    conn.close()
+    return results
+
+counts = calculate_genres_count()
+with open("genre_counts.txt", "w") as file:
+    for genre, count in counts:
+        file.write(f"{genre}: {count}\n")
+

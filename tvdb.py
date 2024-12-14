@@ -5,120 +5,64 @@ from datetime import datetime
 import time
 import json
 
-
 ## correlation between runtime and genre
 ## for tvdb
+
 API_KEY = '9ec49918-212d-4918-9e05-da99e17ad799'
-BASE_URL = "https://api.thetvdb.com"
+BASE_URL = "https://www.thetvdb.com/"
+LOGIN_URL = f"{BASE_URL}/login"
 
-def get_auth_token(api_key):
-    url = f"{BASE_URL}/login"
-    payload = {"apikey": api_key}
-    response = requests.post(url, json=payload)
-    if response.status_code == 200:
-        return response.json().get("token")
-    else:
-        print("Error authenticating:", response.status_code, response.text)
-        return None
+headers = {
+    'Content-Type': 'application/json'
+}
 
-def get_show_details(show_name, token):
-    headers = {"Authorization": f"Bearer {token}"}
-    url = f"{BASE_URL}/search/series"
-    params = {"name": show_name}
-    response = requests.get(url, headers=headers, params=params)
-    if response.status_code == 200:
-        return response.json().get("data", [])
-    ##else:
-    ##    print("Error fetching show details:", response.status_code, response.text)
-    ##    return []
+data = {
+    'apikey': API_KEY
+}
 
-token = get_auth_token(API_KEY)
-if token:
-    show_name = "Breaking Bad"
-    shows = get_show_details(show_name, token)
-    for show in shows:
-        print(show)
+response = requests.post(LOGIN_URL, json=data, headers=headers)
 
-def setup_database():
-    conn = sqlite3.connect("tvdb_data.db")
-    cursor = conn.cursor()
+if response.status_code == 200:
+    token = response.json()['token']
+    print(f"Authenticated successfully! Token: {token}")
+else:
+    print(f"Failed to authenticate: {response.status_code}")
 
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS shows (
-            id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL,
-            runtime INTEGER,
-            overview TEXT
-        )
-    """)
+    SHOW_ID = "ID371028" 
+SHOW_URL = f"{BASE_URL}/series/{SHOW_ID}"
 
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS genres (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            show_id INTEGER NOT NULL,
-            genre TEXT NOT NULL,
-            FOREIGN KEY (show_id) REFERENCES shows (id)
-        )
-    """)
+headers['Authorization'] = f"Bearer {token}"
 
-    conn.commit()
-    conn.close()
+response = requests.get(SHOW_URL, headers=headers)
 
-setup_database()
-
-def save_show_to_db(show, genres):
-    conn = sqlite3.connect("tvdb_data.db")
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        INSERT OR IGNORE INTO shows (id, name, runtime, overview)
-        VALUES (?, ?, ?, ?)
-    """, (show["id"], show["seriesName"], show.get("runtime"), show.get("overview")))
-
-    for genre in genres:
-        cursor.execute("""
-            INSERT INTO genres (show_id, genre)
-            VALUES (?, ?)
-        """, (show["id"], genre))
-
-    conn.commit()
-    conn.close()
-
-#for show in shows:
-#    genres = show.get("genre", [])
-#    save_show_to_db(show, genres)
-
-def save_show_to_db(show, genres):
-    conn = sqlite3.connect("tvdb_data.db")
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        INSERT OR IGNORE INTO shows (id, name, runtime, overview)
-        VALUES (?, ?, ?, ?)
-    """, (show["id"], show["seriesName"], show.get("runtime"), show.get("overview")))
-
-    for genre in genres:
-        cursor.execute("""
-            INSERT INTO genres (show_id, genre)
-            VALUES (?, ?)
-        """, (show["id"], genre))
-
-    conn.commit()
-    conn.close()
-
-def get_genre_length_data():
-    conn = sqlite3.connect("tvdb_data.db")
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT g.genre, AVG(s.runtime) as avg_runtime
-        FROM genres g
-        JOIN shows s ON g.show_id = s.id
-        GROUP BY g.genre
-        ORDER BY avg_runtime DESC
-    """)
-
-    results = cursor.fetchall()
-    conn.close()
-    return results
+if response.status_code == 200:
+    show_data = response.json()
+    
+    # Extract show details
+    show_name = show_data['data']['seriesName']
+    number_of_seasons = show_data['data']['numberOfSeasons']
+    genre = show_data['data']['genre']
+    
+    print(f"Show Name: {show_name}")
+    print(f"Number of Seasons: {number_of_seasons}")
+    print(f"Genre: {genre}")
+    
+    # Fetch episodes details
+    episodes = []
+    for season in range(1, number_of_seasons + 1):
+        season_url = f"{BASE_URL}/series/{SHOW_ID}/episodes/query?airedSeason={season}"
+        season_response = requests.get(season_url, headers=headers)
+        
+        if season_response.status_code == 200:
+            season_data = season_response.json()
+            episodes_in_season = len(season_data['data'])
+            episodes.append(episodes_in_season)
+    
+    # Total episodes
+    total_episodes = sum(episodes)
+    print(f"Total Episodes: {total_episodes}")
+    for season, count in enumerate(episodes, start=1):
+        print(f"Season {season}: {count} episodes")
+else:
+    print(f"Failed to fetch show details: {response.status_code}")
 

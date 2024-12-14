@@ -81,9 +81,9 @@ def save_show_to_db(show, genres):
     conn.commit()
     conn.close()
 
-for show in shows:
-    genres = show.get("genre", [])
-    save_show_to_db(show, genres)
+#for show in shows:
+#    genres = show.get("genre", [])
+#    save_show_to_db(show, genres)
 
 def save_show_to_db(show, genres):
     conn = sqlite3.connect("tvdb_data.db")

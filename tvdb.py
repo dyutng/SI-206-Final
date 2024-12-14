@@ -5,6 +5,8 @@ from datetime import datetime
 import time
 import json
 
+
+## correlation between runtime and genre
 ## for tvdb
 API_KEY = '9ec49918-212d-4918-9e05-da99e17ad799'
 BASE_URL = "https://api.thetvdb.com"

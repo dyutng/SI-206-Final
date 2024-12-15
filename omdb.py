@@ -14,7 +14,7 @@ BASE_URL = "http://www.omdbapi.com/"
 movies = ["The Matrix", "Inception", "Titanic", "The Godfather", "Interstellar"]
 
 # SQLite setup
-db_name = "movies.db"
+db_name = "OMDB.db"
 conn = sqlite3.connect(db_name)
 cursor = conn.cursor()
 

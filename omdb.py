@@ -23,13 +23,8 @@ cursor.execute('''CREATE TABLE IF NOT EXISTS Movies (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     title TEXT,
                     runtime INTEGER,
-                    year INTEGER
-                )''')
-
-cursor.execute('''CREATE TABLE IF NOT EXISTS Genres (
-                    movie_id INTEGER,
                     genre TEXT,
-                    FOREIGN KEY(movie_id) REFERENCES Movies(id)
+                    year INTEGER
                 )''')
 conn.commit()
 
@@ -46,15 +41,15 @@ def get_movie_data(title):
         if response.status_code == 200:
             data = response.json()
             if data.get('Response') == 'True':
-                runtime_str = data.get('Runtime', '0 min').split(' ')[0]
+                runtime_str = data.get('Runtime', '0 min').split(' ')[0]  
                 runtime = int(runtime_str) if runtime_str.isdigit() else None
-                genres = data.get('Genre', 'Unknown').split(", ")  # Split genres into a list
+                genre = data.get('Genre', 'Unknown')
                 year = int(data.get('Year', '0')) if data.get('Year', '0').isdigit() else None
 
                 return {
                     "title": data.get('Title'),
                     "runtime": runtime,
-                    "genres": genres,
+                    "genre": genre,
                     "year": year
                 }
             else:
@@ -67,35 +62,27 @@ def get_movie_data(title):
 
 def save_to_db(movie_data):
     """
-    Save movie data and genres to SQLite database.
+    Save movie data to SQLite database.
     """
     try:
-        cursor.execute("INSERT INTO Movies (title, runtime, year) VALUES (?, ?, ?)",
-                       (movie_data['title'], movie_data['runtime'], movie_data['year']))
-        movie_id = cursor.lastrowid  
-
-        for genre in movie_data['genres']:
-            cursor.execute("INSERT INTO Genres (movie_id, genre) VALUES (?, ?)", (movie_id, genre))
+        cursor.execute("INSERT INTO Movies (title, runtime, genre, year) VALUES (?, ?, ?, ?)",
+                       (movie_data['title'], movie_data['runtime'], movie_data['genre'], movie_data['year']))
         conn.commit()
-        print(f"Saved: {movie_data['title']} with genres {movie_data['genres']}")
+        #print(f"Saved: {movie_data['title']}")
     except Exception as e:
         print(f"Error saving to database: {e}")
 
 for movie in movies:
-    print(f"Fetching data for: {movie}")
+    #print(f"Fetching data for: {movie}")
     data = get_movie_data(movie)
     if data:
         save_to_db(data)
     time.sleep(1) 
 
-print("\nStored Movies:")
 cursor.execute("SELECT * FROM Movies")
-for row in cursor.fetchall():
-    print(row)
-
-print("\nStored Genres:")
-cursor.execute("SELECT * FROM Genres")
-for row in cursor.fetchall():
+rows = cursor.fetchall()
+print("\nStored Movies:")
+for row in rows:
     print(row)
 
 conn.close()

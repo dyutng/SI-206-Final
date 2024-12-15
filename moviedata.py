@@ -11,6 +11,9 @@ import seaborn as sns
 API_KEY = 'c9ae535e'
 BASE_URL = "http://www.omdbapi.com/"
 
+# TMDB api key
+API_KEY = 'f4e6cb562855574dff73c7801d4cebbf'
+
 # sql setup
 db_name = "omdb_movies.db"
 conn = sqlite3.connect(db_name)
@@ -56,32 +59,27 @@ def get_movie_data(title):
                     "genre": genre,
                     "year": year
                 }
-            #else:
-            #    print(f"Movie not found: {title}")
     except Exception as e:
         print(f"Error: {e}")
     return None
 
 def save_to_db(movie_data):
     """
-    save movie data to sqlite database and split genres
+    save movie data to sqlite database and take only the first genre
     """
     try:
         cursor.execute("SELECT id FROM Movies WHERE title = ?", (movie_data['title'],))
         result = cursor.fetchone()
         if result:
-            #print(f"'{movie_data['title']}' already exists in the database. skipping.")
             return
 
         cursor.execute("INSERT INTO Movies (title, year) VALUES (?, ?)",
                        (movie_data['title'], movie_data['year']))
         movie_id = cursor.lastrowid
 
-        # split genres cuz they were all put tgt into one genre if the movie had multiple
-        genres = movie_data['genre'].split(", ") 
-        for genre in genres:
-            cursor.execute("INSERT INTO Genres (movie_id, genre, runtime) VALUES (?, ?, ?)",
-                           (movie_id, genre, movie_data['runtime']))
+        first_genre = movie_data['genre'].split(", ")[0]  
+        cursor.execute("INSERT INTO Genres (movie_id, genre, runtime) VALUES (?, ?, ?)",
+                       (movie_id, first_genre, movie_data['runtime']))
 
         conn.commit()
     except Exception as e:
@@ -106,9 +104,7 @@ def main():
     ]
     
     total_movies = get_total_movies()
-    #print(f"total movies in database: {total_movies}")
 
-    # limit data stored to 25 
     if total_movies < 100:
         remaining_movies = 100 - total_movies
         movies_to_fetch = min(len(movies), min(remaining_movies, 25))
@@ -117,13 +113,9 @@ def main():
             data = get_movie_data(movies[i])
             if data:
                 save_to_db(data)
-            time.sleep(1)  
+            time.sleep(1)
 
-        #print(f"added {movies_to_fetch} movies to the database")
-    #else:
-        #print("db already has 100 or more movies.")
-
-    # plot average runtime by genre
+    # Plot average runtime by genre
     cursor.execute("SELECT genre, runtime FROM Genres")
     data = cursor.fetchall()
 
@@ -133,7 +125,7 @@ def main():
 
     avg_runtime = {genre: sum(runtimes)/len(runtimes) for genre, runtimes in genre_runtime.items()}
 
-    # plot bar chart
+    # Plot bar chart
     plt.figure(figsize=(10, 6))
     plt.bar(avg_runtime.keys(), avg_runtime.values())
     plt.xlabel('Genre')
@@ -144,7 +136,7 @@ def main():
     plt.savefig("runtimevsgenre_bar.png")  
     plt.show()
 
-    #plot box plot
+    # plot box plot
     plt.figure(figsize=(12, 7))
     sns.boxplot(x=[genre for genre, _ in data], y=[runtime for _, runtime in data])
     plt.xlabel('Genre')
@@ -155,16 +147,47 @@ def main():
     plt.savefig("runtimevsgenre_box.png")  
     plt.show()
 
-    #print("\nStored Movies and Genres:")
+    # get year and genre data for year vs. genre comparison
+    cursor.execute('''
+        SELECT m.year, g.genre
+        FROM Movies m
+        JOIN Genres g ON m.id = g.movie_id
+    ''')
+    data = cursor.fetchall()
+
+    # Group by year and genre
+    year_genre_count = defaultdict(lambda: defaultdict(int))
+    for year, genre in data:
+        year_genre_count[year][genre] += 1
+
+    # Prepare data for plotting
+    years = sorted(year_genre_count.keys())
+    genres = set(genre for year in year_genre_count.values() for genre in year)
+
+    genre_matrix = []
+    for year in years:
+        genre_counts = [year_genre_count[year].get(genre, 0) for genre in genres]
+        genre_matrix.append(genre_counts)
+
+    # Plot heatmap for year vs. genre comparison
+    #plt.figure(figsize=(12, 8))
+    #sns.heatmap(genre_matrix, xticklabels=genres, yticklabels=years, cmap="YlGnBu", annot=True, fmt="d")
+    #plt.xlabel('Genre')
+    #plt.ylabel('Year')
+    #plt.title('Genre Distribution by Year')
+    #plt.tight_layout()
+    #plt.savefig("yearvsgenre_heatmap.png")
+    #plt.show()
+
+    # Print stored Movies and Genres
     cursor.execute('''
         SELECT m.title, g.genre, g.runtime 
         FROM Movies m 
         JOIN Genres g ON m.id = g.movie_id
     ''')
     rows = cursor.fetchall()
-    #for row in rows:
-    #    print(row)
-
+    for row in rows:
+        print(row)
 
 if __name__ == "__main__":
     main()

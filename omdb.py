@@ -13,12 +13,11 @@ BASE_URL = "http://www.omdbapi.com/"
 
 movies = ["The Matrix", "Inception", "Titanic", "The Godfather", "Interstellar"]
 
-# SQLite setup
+# sqlite setup
 db_name = "OMDB.db"
 conn = sqlite3.connect(db_name)
 cursor = conn.cursor()
 
-# Create table if not exists
 cursor.execute('''CREATE TABLE IF NOT EXISTS Movies (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     title TEXT,
@@ -72,20 +71,17 @@ def save_to_db(movie_data):
     except Exception as e:
         print(f"Error saving to database: {e}")
 
-# Fetch and save data for each movie
 for movie in movies:
     print(f"Fetching data for: {movie}")
     data = get_movie_data(movie)
     if data:
         save_to_db(data)
-    time.sleep(1)  # To respect API rate limits
+    time.sleep(1) 
 
-# Display results
 cursor.execute("SELECT * FROM Movies")
 rows = cursor.fetchall()
 print("\nStored Movies:")
 for row in rows:
     print(row)
 
-# Close connection
 conn.close()

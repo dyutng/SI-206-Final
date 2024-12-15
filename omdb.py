@@ -5,6 +5,7 @@ from datetime import datetime
 import time
 import matplotlib.pyplot as plt
 from collections import defaultdict
+import seaborn as sns
 
 # OMDB API Key
 API_KEY = 'c9ae535e'
@@ -81,12 +82,12 @@ def save_to_db(movie_data):
                            (movie_id, genre, movie_data['runtime']))
         
         conn.commit()
-        print(f"Saved: {movie_data['title']}")
+        #print(f"Saved: {movie_data['title']}")
     except Exception as e:
         print(f"Error saving to database: {e}")
 
 for movie in movies:
-    print(f"Fetching data for: {movie}")
+    #print(f"Fetching data for: {movie}")
     data = get_movie_data(movie)
     if data:
         save_to_db(data)

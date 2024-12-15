@@ -41,7 +41,7 @@ def get_movie_data(title):
         if response.status_code == 200:
             data = response.json()
             if data.get('Response') == 'True':
-                runtime_str = data.get('Runtime', '0 min').split(' ')[0]  # Extract minutes
+                runtime_str = data.get('Runtime', '0 min').split(' ')[0]  
                 runtime = int(runtime_str) if runtime_str.isdigit() else None
                 genre = data.get('Genre', 'Unknown')
                 year = int(data.get('Year', '0')) if data.get('Year', '0').isdigit() else None
@@ -68,12 +68,12 @@ def save_to_db(movie_data):
         cursor.execute("INSERT INTO Movies (title, runtime, genre, year) VALUES (?, ?, ?, ?)",
                        (movie_data['title'], movie_data['runtime'], movie_data['genre'], movie_data['year']))
         conn.commit()
-        print(f"Saved: {movie_data['title']}")
+        #print(f"Saved: {movie_data['title']}")
     except Exception as e:
         print(f"Error saving to database: {e}")
 
 for movie in movies:
-    print(f"Fetching data for: {movie}")
+    #print(f"Fetching data for: {movie}")
     data = get_movie_data(movie)
     if data:
         save_to_db(data)

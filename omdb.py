@@ -138,9 +138,10 @@ def main():
     plt.bar(avg_runtime.keys(), avg_runtime.values())
     plt.xlabel('Genre')
     plt.ylabel('Average Runtime (minutes)')
-    plt.title('Average Movie Runtime by Genre')
+    plt.title('Average Movie Runtime vs. Movie Genre')
     plt.xticks(rotation=45)
     plt.tight_layout()
+    plt.savefig("runtimevsgenre_bar.png")  
     plt.show()
 
     #plot box plot
@@ -148,9 +149,10 @@ def main():
     sns.boxplot(x=[genre for genre, _ in data], y=[runtime for _, runtime in data])
     plt.xlabel('Genre')
     plt.ylabel('Runtime (minutes)')
-    plt.title('Runtime Distribution by Genre')
+    plt.title('Movie Runtime vs. Movie Genre')
     plt.xticks(rotation=45)
     plt.tight_layout()
+    plt.savefig("runtimevsgenre_box.png")  
     plt.show()
 
     #print("\nStored Movies and Genres:")

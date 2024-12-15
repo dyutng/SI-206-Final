@@ -11,6 +11,7 @@ import json
 API_KEY = 'c9ae535e'
 BASE_URL = "http://www.omdbapi.com/"
 
+#test
 movies = ["The Matrix", "Inception", "Titanic", "The Godfather", "Interstellar"]
 
 # sqlite setup

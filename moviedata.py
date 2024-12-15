@@ -6,13 +6,18 @@ import time
 import matplotlib.pyplot as plt
 from collections import defaultdict
 import seaborn as sns
+from tmdbv3api import TMDb, Movie, Discover
 
 # OMDB API key
-API_KEY = 'c9ae535e'
-BASE_URL = "http://www.omdbapi.com/"
+OMDB_API_KEY = 'c9ae535e'
+OMDB_API_KEY = "http://www.omdbapi.com/"
 
 # TMDB api key
-API_KEY = 'f4e6cb562855574dff73c7801d4cebbf'
+TMDB_API_KEY = 'f4e6cb562855574dff73c7801d4cebbf'
+tmdb = TMDb()
+tmdb.api_key = TMDB_API_KEY
+movie = Movie()
+discover = Discover()
 
 # sql setup
 db_name = "omdb_movies.db"
@@ -41,10 +46,10 @@ def get_movie_data(title):
     """
     try:
         params = {
-            'apikey': API_KEY,
+            'apikey': OMDB_API_KEY,
             't': title,
         }
-        response = requests.get(BASE_URL, params=params)
+        response = requests.get(OMDB_API_KEY, params=params)
         if response.status_code == 200:
             data = response.json()
             if data.get('Response') == 'True':

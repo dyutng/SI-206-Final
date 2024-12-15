@@ -12,7 +12,7 @@ API_KEY = 'c9ae535e'
 BASE_URL = "http://www.omdbapi.com/"
 
 # sql setup
-db_name = "movies.db"
+db_name = "omdb_movies.db"
 conn = sqlite3.connect(db_name)
 cursor = conn.cursor()
 
@@ -108,7 +108,7 @@ def main():
     ]
     
     total_movies = get_total_movies()
-    print(f"Total movies in database: {total_movies}")
+    print(f"total movies in database: {total_movies}")
 
     # limit data stored to 25 
     if total_movies < 100:
@@ -121,9 +121,9 @@ def main():
                 save_to_db(data)
             time.sleep(1)  
 
-        print(f"Added {movies_to_fetch} movies to the database.")
+        print(f"added {movies_to_fetch} movies to the database")
     else:
-        print("Database already has 100 or more movies.")
+        print("db already has 100 or more movies.")
 
     # plot average runtime by genre
     cursor.execute("SELECT genre, runtime FROM Genres")

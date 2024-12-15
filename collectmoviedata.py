@@ -48,17 +48,15 @@ def initializedb():
     conn.commit()
     conn.close()
 
-# store 100+ movies in tmdb_movies.db, only process 25 at a time
 def fetch_tmdb_data():
     """
     fetch TMDB movies. processes 25 movies at a time, store 100+ total in database.
     """
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
-    total_movies = 0 
-
-    page = 1  
-    max_movies = 110
+    total_movies = 0  
+    max_movies = 120 #had to set a limit or else it would keep on going forever
+    page = 1          
 
     while total_movies < max_movies:
         try:
@@ -72,17 +70,24 @@ def fetch_tmdb_data():
                     break
 
                 try:
+                    details = movie.details(m.id)
+
                     c.execute('''
-                        INSERT OR IGNORE INTO tmdb_movies (tmdb_id, title, release_date, revenue, budget, tmdb_rating, tmdb_votes, tmdb_popularity)
+                        INSERT OR IGNORE INTO tmdb_movies 
+                        (tmdb_id, title, release_date, revenue, budget, tmdb_rating, tmdb_votes, tmdb_popularity)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-                              (m.id, m.title, m.release_date, None, None, m.vote_average, m.vote_count, m.popularity))
+                        (details.id, details.title, details.release_date,
+                         details.revenue, details.budget, 
+                         details.vote_average, details.vote_count, details.popularity))
+
                     total_movies += 1
-                    #print(f"Inserted TMDB Movie: {m.title} ({m.id})")
+                    #print(f"Inserted TMDB Movie: {details.title} (Revenue: {details.revenue}, Budget: {details.budget})")
+
                 except Exception as e:
-                    print(f"Failed to insert TMDB movie {m.title}: {e}")
+                    print(f"Failed to fetch details for movie ID {m.id}: {e}")
 
             page += 1
-            time.sleep(1)
+            time.sleep(1) 
 
         except Exception as e:
             print(f"Error fetching data from TMDB API: {e}")
@@ -92,7 +97,7 @@ def fetch_tmdb_data():
     conn.close()
     print(f"TMDB data fetch completed. Total movies fetched: {total_movies}")
 
-# store 100+ movies in omdb_movies.db, only process 25 at a time
+
 def fetch_omdb_data():
     """
     fetch OMDB movies. processes 25 movies at a time, store 100+ total in database.
@@ -103,6 +108,7 @@ def fetch_omdb_data():
     c.execute('''
         SELECT tmdb_id, title, release_date FROM tmdb_movies 
         WHERE tmdb_id NOT IN (SELECT tmdb_id FROM omdb_movies)
+        LIMIT 25
     ''')
     movies = c.fetchall()
 

@@ -62,8 +62,6 @@ def fetch_tmdb_data():
     batch_size = 25
     max_movies = 100
 
-    print("Fetching TMDB movie data...")
-
     while total_movies < max_movies:
         try:
             movies = discover.discover_movies({
@@ -81,20 +79,20 @@ def fetch_tmdb_data():
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                               (m.id, m.title, m.release_date, None, None, m.vote_average, m.vote_count, m.popularity, "US"))
                     total_movies += 1
-                    print(f"Inserted TMDB Movie: {m.title} ({m.id})")
+                    #print(f"inserted tmdb Movie: {m.title} ({m.id})")
                 except Exception as e:
-                    print(f"Failed to insert TMDB movie {m.title}: {e}")
+                    print(f"failed to insert tmdb movie {m.title}: {e}")
 
             page += 1
             time.sleep(1)
 
         except Exception as e:
-            print(f"Error fetching data from TMDB API: {e}")
+            print(f"error fetching data from tmdb api: {e}")
             break
 
     conn.commit()
     conn.close()
-    print(f"TMDB data fetch completed. Total movies fetched: {total_movies}")
+    print(f"TMDB fetch completed. Total movies fetched: {total_movies}")
 
 # store 100+ movies in omdb_movies.db, only process 25 at a time
 def fetch_omdb_data():
@@ -110,8 +108,6 @@ def fetch_omdb_data():
         LIMIT 25
     ''')
     movies = c.fetchall()
-
-    print("Fetching OMDB movie data...")
 
     for tmdb_id, title, release_date in movies:
         try:
@@ -132,10 +128,10 @@ def fetch_omdb_data():
                         VALUES (?, ?, ?, ?, ?, ?)''',
                               (tmdb_id, title, year, genre, int(runtime) if runtime.isdigit() else 0, box_office))
                     #print(f"inserted omdb movie: {title} ({year})")
-                else:
-                    print(f"OMDB API returned no data for: {title} ({year})")
-            else:
-                print(f"OMDB API request failed for {title}: HTTP {response.status_code}")
+                #else:
+                #    print(f"OMDB API returned no data for: {title} ({year})")
+            #else:
+            #    print(f"failed for {title}:  {response.status_code}")
 
             time.sleep(0.5)  
 
@@ -144,20 +140,20 @@ def fetch_omdb_data():
 
     conn.commit()
     conn.close()
-    print("OMDB data fetch completed.") 
+    print("OMDB fetch completed.") 
 
 def main():
     print("Initializing the database...")
     initializedb()
-    print("Database initialized successfully.\n")
+    print("Database initialized.\n")
 
-    print("Starting to fetch TMDB movie data...\n")
+    print("Fetching TMDB movie data\n")
     fetch_tmdb_data()
 
-    print("\nStarting to fetch OMDB movie data...\n")
+    print("\nFetching OMDB movie data...\n")
     fetch_omdb_data()
 
-    print("\nData fetching complete. All movies have been stored in the database.")
+    print("\nFetching complete.")
 
 if __name__ == "__main__":
     main()

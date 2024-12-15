@@ -18,7 +18,7 @@ discover = Discover()
 
 def initializedb():
     """
-    Initialize database with separate tables for OMDB and TMDB.
+    initialize database with separate tables for OMDB and TMDB.
     """
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
@@ -32,7 +32,6 @@ def initializedb():
               tmdb_rating REAL,
               tmdb_votes INTEGER,
               tmdb_popularity REAL,
-              region TEXT,
               UNIQUE(tmdb_id))''')
     
     c.execute('''CREATE TABLE IF NOT EXISTS omdb_movies
@@ -52,13 +51,14 @@ def initializedb():
 # store 100+ movies in tmdb_movies.db, only process 25 at a time
 def fetch_tmdb_data():
     """
-    fetch tmdb movies. processes less than 25 movies at a time, store 100+ total in database.
+    fetch TMDB movies. processes 25 movies at a time, store 100+ total in database.
     """
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
-    total_movies = 0  
-    max_movies = 100 
-    page = 1          
+    total_movies = 0 
+
+    page = 1  
+    max_movies = 110
 
     while total_movies < max_movies:
         try:
@@ -72,24 +72,17 @@ def fetch_tmdb_data():
                     break
 
                 try:
-                    details = movie.details(m.id)
-
                     c.execute('''
-                        INSERT OR IGNORE INTO tmdb_movies 
-                        (tmdb_id, title, release_date, revenue, budget, tmdb_rating, tmdb_votes, tmdb_popularity, region)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                        (details.id, details.title, details.release_date,
-                         details.revenue, details.budget, 
-                         details.vote_average, details.vote_count, details.popularity, "US"))
-
+                        INSERT OR IGNORE INTO tmdb_movies (tmdb_id, title, release_date, revenue, budget, tmdb_rating, tmdb_votes, tmdb_popularity)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+                              (m.id, m.title, m.release_date, None, None, m.vote_average, m.vote_count, m.popularity))
                     total_movies += 1
-                    #print(f"Inserted TMDB Movie: {details.title} (Revenue: {details.revenue}, Budget: {details.budget})")
-
+                    #print(f"Inserted TMDB Movie: {m.title} ({m.id})")
                 except Exception as e:
-                    print(f"Failed to fetch details for movie ID {m.id}: {e}")
+                    print(f"Failed to insert TMDB movie {m.title}: {e}")
 
             page += 1
-            time.sleep(1) 
+            time.sleep(1)
 
         except Exception as e:
             print(f"Error fetching data from TMDB API: {e}")
@@ -99,11 +92,10 @@ def fetch_tmdb_data():
     conn.close()
     print(f"TMDB data fetch completed. Total movies fetched: {total_movies}")
 
-
-# store 100+ movies in omdb_movies.db, only process less than 25 at a time
+# store 100+ movies in omdb_movies.db, only process 25 at a time
 def fetch_omdb_data():
     """
-    fetch OMDB movies. processes less than 25 movies at a time, store 100+ total in database.
+    fetch OMDB movies. processes 25 movies at a time, store 100+ total in database.
     """
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
@@ -111,7 +103,6 @@ def fetch_omdb_data():
     c.execute('''
         SELECT tmdb_id, title, release_date FROM tmdb_movies 
         WHERE tmdb_id NOT IN (SELECT tmdb_id FROM omdb_movies)
-        LIMIT 25
     ''')
     movies = c.fetchall()
 
@@ -151,15 +142,15 @@ def fetch_omdb_data():
 def main():
     print("Initializing the database...")
     initializedb()
-    print("Database initialized.\n")
+    print("Database initialized successfully.\n")
 
-    print("Fetching TMDB movie data\n")
+    print("Starting to fetch TMDB movie data...\n")
     fetch_tmdb_data()
 
-    print("\nFetching OMDB movie data...\n")
+    print("\nStarting to fetch OMDB movie data...\n")
     fetch_omdb_data()
 
-    print("\nFetching complete.")
+    print("\nData fetching complete.")
 
 if __name__ == "__main__":
     main()

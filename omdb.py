@@ -34,7 +34,7 @@ conn.commit()
 
 def get_movie_data(title):
     """
-    Fetch movie data from OMDB API.
+    fetch movie data from omdb api
     """
     try:
         params = {
@@ -56,23 +56,21 @@ def get_movie_data(title):
                     "genre": genre,
                     "year": year
                 }
-            else:
-                print(f"Movie not found: {title}")
-        else:
-            print(f"Error fetching data: {response.status_code}")
+            #else:
+            #    print(f"Movie not found: {title}")
     except Exception as e:
         print(f"Error: {e}")
     return None
 
 def save_to_db(movie_data):
     """
-    Save movie data to SQLite database, splitting genres.
+    save movie data to sqlite database and split genres
     """
     try:
         cursor.execute("SELECT id FROM Movies WHERE title = ?", (movie_data['title'],))
         result = cursor.fetchone()
         if result:
-            print(f"Movie '{movie_data['title']}' already exists in the database. Skipping.")
+            #print(f"'{movie_data['title']}' already exists in the database. skipping.")
             return
 
         cursor.execute("INSERT INTO Movies (title, year) VALUES (?, ?)",
@@ -91,7 +89,7 @@ def save_to_db(movie_data):
 
 def get_total_movies():
     """
-    Check how many movies are currently in the database.
+    check how many movies are currently in the db
     """
     cursor.execute("SELECT COUNT(*) FROM Movies")
     return cursor.fetchone()[0]
@@ -108,7 +106,7 @@ def main():
     ]
     
     total_movies = get_total_movies()
-    print(f"total movies in database: {total_movies}")
+    #print(f"total movies in database: {total_movies}")
 
     # limit data stored to 25 
     if total_movies < 100:
@@ -121,9 +119,9 @@ def main():
                 save_to_db(data)
             time.sleep(1)  
 
-        print(f"added {movies_to_fetch} movies to the database")
-    else:
-        print("db already has 100 or more movies.")
+        #print(f"added {movies_to_fetch} movies to the database")
+    #else:
+        #print("db already has 100 or more movies.")
 
     # plot average runtime by genre
     cursor.execute("SELECT genre, runtime FROM Genres")
@@ -135,9 +133,9 @@ def main():
 
     avg_runtime = {genre: sum(runtimes)/len(runtimes) for genre, runtimes in genre_runtime.items()}
 
-    # plot
+    # plot bar chart
     plt.figure(figsize=(10, 6))
-    plt.bar(avg_runtime.keys(), avg_runtime.values(), color='skyblue')
+    plt.bar(avg_runtime.keys(), avg_runtime.values())
     plt.xlabel('Genre')
     plt.ylabel('Average Runtime (minutes)')
     plt.title('Average Movie Runtime by Genre')
@@ -145,15 +143,25 @@ def main():
     plt.tight_layout()
     plt.show()
 
-    print("\nStored Movies and Genres:")
+    #plot box plot
+    plt.figure(figsize=(12, 7))
+    sns.boxplot(x=[genre for genre, _ in data], y=[runtime for _, runtime in data])
+    plt.xlabel('Genre')
+    plt.ylabel('Runtime (minutes)')
+    plt.title('Runtime Distribution by Genre')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
+
+    #print("\nStored Movies and Genres:")
     cursor.execute('''
         SELECT m.title, g.genre, g.runtime 
         FROM Movies m 
         JOIN Genres g ON m.id = g.movie_id
     ''')
     rows = cursor.fetchall()
-    for row in rows:
-        print(row)
+    #for row in rows:
+    #    print(row)
 
 
 if __name__ == "__main__":

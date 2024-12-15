@@ -3,28 +3,33 @@ import sqlite3
 import requests
 from datetime import datetime
 import time
-import json
+import matplotlib.pyplot as plt
+from collections import defaultdict
 
-## correlation between runtime and genre
-## omdb
-
+# OMDB API Key
 API_KEY = 'c9ae535e'
 BASE_URL = "http://www.omdbapi.com/"
 
-#test
 movies = ["The Matrix", "Inception", "Titanic", "The Godfather", "Interstellar"]
 
 # sqlite setup
-db_name = "OMDB.db"
+db_name = "movies.db"
 conn = sqlite3.connect(db_name)
 cursor = conn.cursor()
 
+# create tables
 cursor.execute('''CREATE TABLE IF NOT EXISTS Movies (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     title TEXT,
-                    runtime INTEGER,
-                    genre TEXT,
                     year INTEGER
+                )''')
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS Genres (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    movie_id INTEGER,
+                    genre TEXT,
+                    runtime INTEGER,
+                    FOREIGN KEY (movie_id) REFERENCES Movies(id)
                 )''')
 conn.commit()
 
@@ -62,26 +67,58 @@ def get_movie_data(title):
 
 def save_to_db(movie_data):
     """
-    Save movie data to SQLite database.
+    Save movie data to SQLite database, splitting genres.
     """
     try:
-        cursor.execute("INSERT INTO Movies (title, runtime, genre, year) VALUES (?, ?, ?, ?)",
-                       (movie_data['title'], movie_data['runtime'], movie_data['genre'], movie_data['year']))
+        cursor.execute("INSERT INTO Movies (title, year) VALUES (?, ?)",
+                       (movie_data['title'], movie_data['year']))
+        movie_id = cursor.lastrowid  
+        
+        # split genres cuz they were all put tgt into one genre if the movie had multiple
+        genres = movie_data['genre'].split(", ")  
+        for genre in genres:
+            cursor.execute("INSERT INTO Genres (movie_id, genre, runtime) VALUES (?, ?, ?)",
+                           (movie_id, genre, movie_data['runtime']))
+        
         conn.commit()
-        #print(f"Saved: {movie_data['title']}")
+        print(f"Saved: {movie_data['title']}")
     except Exception as e:
         print(f"Error saving to database: {e}")
 
 for movie in movies:
-    #print(f"Fetching data for: {movie}")
+    print(f"Fetching data for: {movie}")
     data = get_movie_data(movie)
     if data:
         save_to_db(data)
-    time.sleep(1) 
+    time.sleep(1)  
 
-cursor.execute("SELECT * FROM Movies")
+cursor.execute("SELECT genre, runtime FROM Genres")
+data = cursor.fetchall()
+
+genre_runtime = defaultdict(list)
+for genre, runtime in data:
+    genre_runtime[genre].append(runtime)
+
+# calculate average runtime per genre
+avg_runtime = {genre: sum(runtimes)/len(runtimes) for genre, runtimes in genre_runtime.items()}
+
+# plot
+plt.figure(figsize=(10, 6))
+plt.bar(avg_runtime.keys(), avg_runtime.values(), color='skyblue')
+plt.xlabel('Genre')
+plt.ylabel('Average Runtime (minutes)')
+plt.title('Average Movie Runtime by Genre')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+print("\nStored Movies and Genres:")
+cursor.execute('''
+    SELECT m.title, g.genre, g.runtime 
+    FROM Movies m 
+    JOIN Genres g ON m.id = g.movie_id
+''')
 rows = cursor.fetchall()
-print("\nStored Movies:")
 for row in rows:
     print(row)
 

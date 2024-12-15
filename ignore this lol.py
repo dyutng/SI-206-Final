@@ -1,3 +1,7 @@
+# sql setup
+#db_name = "omdb_movies.db"
+#conn = sqlite3.connect(db_name)
+#cursor = conn.cursor()
 
 def get_movie_data(title):
     """
@@ -131,3 +135,102 @@ def main():
 if __name__ == "__main__":
     main()
     conn.close()
+
+#----
+import os
+import sqlite3
+import requests
+import time
+from tmdbv3api import TMDb, Movie, Discover
+import datetime
+
+# OMDB API key
+OMDB_API_KEY = 'c9ae535e'
+OMDB_URL = "http://www.omdbapi.com/"
+
+# TMDB API key
+TMDB_API_KEY = 'f4e6cb562855574dff73c7801d4cebbf'
+tmdb = TMDb()
+tmdb.api_key = TMDB_API_KEY
+movie = Movie()
+discover = Discover()
+
+def initializedb():
+    """
+    Initialize database with separate tables for OMDB and TMDB.
+    """
+    conn = sqlite3.connect('movies.db')
+    c = conn.cursor()
+    
+    c.execute('''CREATE TABLE IF NOT EXISTS tmdb_movies
+              (tmdb_id INTEGER PRIMARY KEY,
+              title TEXT NOT NULL,
+              release_date TEXT,
+              revenue REAL,
+              budget REAL,
+              tmdb_rating REAL,
+              tmdb_votes INTEGER,
+              tmdb_popularity REAL,
+              region TEXT,
+              UNIQUE(tmdb_id))''')
+    
+    c.execute('''CREATE TABLE IF NOT EXISTS omdb_movies
+              (id INTEGER PRIMARY KEY AUTOINCREMENT,
+              tmdb_id INTEGER,
+              title TEXT,
+              year TEXT,
+              genre TEXT,
+              runtime INTEGER,
+              box_office TEXT,
+              FOREIGN KEY (tmdb_id) REFERENCES tmdb_movies(tmdb_id),
+              UNIQUE(title))''')
+    
+    conn.commit()
+    conn.close()
+
+# store 100+ movies in tmdb_movies.db, only process 25 at a time
+def fetch_tmdb_data(limit = 25, page = 1):
+    """
+    fetch TMDB movies. processes 25 movies at a time, store 100+ total in database.
+    """
+    try:
+        response = discover.movies(page=page) 
+
+        movies = [(movie['id'], movie['title'], movie['release_date'], movie['revenue'], movie['budget'],
+                   movie['vote_average'], movie['vote_count'], movie['popularity'], movie.get('original_language', '')) for movie in response]
+        return movies
+    except Exception as e:
+        print(f"Error fetching movies from TMDb: {e}")
+    return []
+
+
+# store 100+ movies in omdb_movies.db, only process 25 at a time
+def fetch_omdb_data(title):
+    """
+    fetch OMDB movies. processes 25 movies at a time, store 100+ total in database.
+    """
+        try:
+        params = {
+            'apikey': OMDB_API_KEY,
+            't': title,
+        }
+        response = requests.get(OMDB_API_KEY, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('Response') == 'True':
+                runtime_str = data.get('Runtime', '0 min').split(' ')[0] 
+                runtime = int(runtime_str) if runtime_str.isdigit() else None
+                genre = data.get('Genre', 'Unknown')
+                year = int(data.get('Year', '0')) if data.get('Year', '0').isdigit() else None
+                box_office = data.get('BoxOffice', 'Unknown')
+
+                return {
+                    "title": data.get('Title'),
+                    "runtime": runtime,
+                    "genre": genre,
+                    "year": year,
+                    "box_office": box_office
+                }
+    except Exception as e:
+        print(f"Error: {e}")
+    return None

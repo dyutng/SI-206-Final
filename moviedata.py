@@ -24,7 +24,7 @@ discover = Discover()
 #conn = sqlite3.connect(db_name)
 #cursor = conn.cursor()
 
-def init_db():
+def initializedb():
     """
     initialize database with separate tables for omdb and tvdb
     """

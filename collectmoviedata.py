@@ -1,174 +1,137 @@
-import os
-import sqlite3
+import urllib.request
 import requests
-import time
-from tmdbv3api import TMDb, Movie, Discover
-import datetime
+import json
+import sqlite3
 
-# OMDB API key
-OMDB_API_KEY = 'c9ae535e'
-OMDB_URL = "http://www.omdbapi.com/"
+WATCHMODE_API = 'DbMuH0ESrIx555JHs5uWVftJPwfWEJJ4mu0PmPCr'
+base_url = "https://api.watchmode.com/v1/title"
+list_titles_url = "https://api.watchmode.com/v1/list-titles/?apiKey=" + WATCHMODE_API
 
-# TMDB API key
-TMDB_API_KEY = 'f4e6cb562855574dff73c7801d4cebbf'
-tmdb = TMDb()
-tmdb.api_key = TMDB_API_KEY
-movie = Movie()
-discover = Discover()
-
-def initializedb():
-    """
-    initialize database with separate tables for OMDB and TMDB.
-    """
+def initialize_database():
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
-    
-    c.execute('''CREATE TABLE IF NOT EXISTS tmdb_movies
-              (tmdb_id INTEGER PRIMARY KEY,
-              title TEXT NOT NULL,
-              release_date TEXT,
-              revenue REAL,
-              budget REAL,
-              tmdb_rating REAL,
-              tmdb_votes INTEGER,
-              tmdb_popularity REAL,
-              UNIQUE(tmdb_id))''')
-    
-    c.execute('''CREATE TABLE IF NOT EXISTS omdb_movies
-              (id INTEGER PRIMARY KEY AUTOINCREMENT,
-              tmdb_id INTEGER,
-              title TEXT,
-              year TEXT,
-              genre TEXT,
-              runtime INTEGER,
-              box_office TEXT,
-              FOREIGN KEY (tmdb_id) REFERENCES tmdb_movies(tmdb_id),
-              UNIQUE(title))''')
-    
-    conn.commit()
-    conn.close()
-
-def fetch_tmdb_data():
-    """
-    fetch TMDB movies. processes 25 movies at a time, store 100+ total in database.
-    """
-    conn = sqlite3.connect('movies.db')
-    c = conn.cursor()
-    total_movies = 0
-    batch_limit = 25  
-    page = 1
-
-    c.execute("SELECT COUNT(*) FROM tmdb_movies")
-    existing_movies = c.fetchone()[0]
-    print(f"Currently {existing_movies} movies in the TMDB table.")
-
-    while total_movies < batch_limit:
-        try:
-            movies = discover.discover_movies({
-                'sort_by': 'popularity.desc',
-                'page': page
-            })
-
-            for m in movies:
-                if total_movies >= batch_limit:
-                    break
-
-                c.execute("SELECT 1 FROM tmdb_movies WHERE tmdb_id = ?", (m.id,))
-                if c.fetchone():
-                    continue
-
-                try:
-                    details = movie.details(m.id)
-
-                    c.execute('''
-                        INSERT OR IGNORE INTO tmdb_movies 
-                        (tmdb_id, title, release_date, revenue, budget, tmdb_rating, tmdb_votes, tmdb_popularity)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-                        (details.id, details.title, details.release_date,
-                         details.revenue, details.budget, 
-                         details.vote_average, details.vote_count, details.popularity))
-
-                    total_movies += 1
-
-                except Exception as e:
-                    print(f"Failed to fetch details for movie ID {m.id}: {e}")
-
-            page += 1
-            time.sleep(1)
-
-        except Exception as e:
-            print(f"Error fetching data from TMDB API: {e}")
-            break
-
-    conn.commit()
-    conn.close()
-    print(f"TMDB data fetch completed. Total movies added this run: {total_movies}")
-
-
-
-def fetch_omdb_data():
-    """
-    fetch OMDB movies. processes 25 movies at a time, store 100+ total in database.
-    """
-    conn = sqlite3.connect('movies.db')
-    c = conn.cursor()
-    total_movies = 0
-    batch_limit = 25
-
-    c.execute("SELECT COUNT(*) FROM omdb_movies")
-    existing_movies = c.fetchone()[0]
-    print(f"Currently {existing_movies} movies in the OMDB table.")
 
     c.execute('''
-        SELECT tmdb_id, title, release_date FROM tmdb_movies 
-        WHERE tmdb_id NOT IN (SELECT tmdb_id FROM omdb_movies)
-        LIMIT 25
+        CREATE TABLE IF NOT EXISTS movies (
+              id INTEGER PRIMARY KEY,
+              movie_name TEXT NOT NULL UNIQUE,
+              type TEXT NOT NULL, 
+              user_score REAL,
+              critic_score REAL
+        )
     ''')
-    movies = c.fetchall()
-
-    for tmdb_id, title, release_date in movies:
-        try:
-            year = datetime.datetime.strptime(release_date, '%Y-%m-%d').year if release_date else None
-
-            params = {'t': title, 'y': year, 'apikey': OMDB_API_KEY}
-            response = requests.get(OMDB_URL, params=params)
-            if response.status_code == 200:
-                data = response.json()
-
-                if data.get("Response") == "True":
-                    runtime = data.get("Runtime", "0 min").split()[0]
-                    box_office = data.get("BoxOffice", "N/A")
-                    genre = data.get("Genre", "N/A")
-
-                    c.execute('''
-                        INSERT OR IGNORE INTO omdb_movies (tmdb_id, title, year, genre, runtime, box_office)
-                        VALUES (?, ?, ?, ?, ?, ?)''',
-                              (tmdb_id, title, year, genre, int(runtime) if runtime.isdigit() else 0, 
-                               box_office))
-                    total_movies += 1
-                    #print(f"Added OMDB movie: {title} ({year})")
-
-            time.sleep(0.5)  
-
-        except Exception as e:
-            print(f"Error processing OMDB movie {title}: {e}")
-
     conn.commit()
     conn.close()
-    print(f"OMDB fetch completed. Total movies added this run: {total_movies}")
+
+def fetch_movies(movie_id):
+    url = f"{base_url}/{movie_id}/details/?apiKey={WATCHMODE_API}"
+    with urllib.request.urlopen(url) as response:
+        data = json.loads(response.read().decode())
+        user_rating = data.get("user_rating", 0) 
+        critic_score = data.get("critic_score", 0)  
+        return user_rating, critic_score
+
+def store_movie_data(movie_name, movie_type, user_score, critic_score):
+    conn = sqlite3.connect('movies.db')
+    c = conn.cursor()
+    c.execute('''
+        INSERT OR IGNORE INTO movies (movie_name, type, user_score, critic_score)
+        VALUES (?, ?, ?, ?)
+    ''', (movie_name, movie_type, user_score, critic_score))
+    conn.commit()
+    conn.close()
+
+def get_movie_list(page = 1, limit = 25):
+    try:
+        url = f"{list_titles_url}&page={page}&limit={limit}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            titles = data.get('titles', [])
+            movie_list = [(title['title'], title['id'], title['type']) for title in titles]
+            return movie_list
+        else:
+            print(f"Error fetching movie list: {response.status_code}")
+            return []
+    except Exception as e:
+        print(f"Error fetching movie list: {e}")
+        return []
+
+def get_movie_data():
+
+    movie_names = []
+    user_scores = []
+    critic_scores = []
+    
+    page = 1
+    batch_size = 25
+    stored_movie_count = 0  
+    max_movies = 100 
+    processed_movie_ids = set() 
+
+    conn = sqlite3.connect('movies.db')
+    c = conn.cursor()
+    c.execute('SELECT COUNT(*) FROM movies')
+    current_count = c.fetchone()[0]
+    conn.close()
+
+    print(f"Currently {current_count} movies in the database.")
+
+    while stored_movie_count < max_movies:
+        movie_list = get_movie_list(page=page, limit=batch_size)
+
+        if not movie_list:
+            print("No more movies found or error occurred.")
+            break
+
+        for movie_name, movie_id, movie_type in movie_list:
+            if movie_type != 'movie':  
+                continue
+
+            if movie_id in processed_movie_ids:
+                continue
+
+            try:
+                user_score, critic_score = fetch_movies(movie_id)
+                if user_score == 0 and critic_score == 0:
+                    continue 
+
+                conn = sqlite3.connect('movies.db')
+                c = conn.cursor()
+                c.execute('SELECT COUNT(*) FROM movies WHERE movie_name = ?', 
+                          (movie_name,))
+                count = c.fetchone()[0]
+                conn.close()
+
+                if count == 0:
+                    store_movie_data(movie_name, movie_type, user_score * 10, critic_score)
+                    stored_movie_count += 1
+                    movie_names.append(movie_name)
+                    user_scores.append(user_score * 10)
+                    critic_scores.append(critic_score)
+
+                    processed_movie_ids.add(movie_id)  
+
+                    if stored_movie_count >= max_movies:
+                        break
+
+            except Exception as e:
+                print(f"Error fetching data for {movie_name}: {e}")
+
+        page += 1  
+
+    print(f"Movie data fetch completed. Total movies added this run: {stored_movie_count}")
+    return movie_names, user_scores, critic_scores
 
 def main():
     print("Initializing the database...")
-    initializedb()
-    print("Database initialized successfully.\n")
+    initialize_database()
+    print("Database initialized successfully.")
 
-    print("Starting to fetch TMDB movie data...\n")
-    fetch_tmdb_data()
+    print("\nFetching movie data...")
+    movie_names, user_scores, critic_scores = get_movie_data()
 
-    print("\nStarting to fetch OMDB movie data...\n")
-    fetch_omdb_data()
-
-    print("\nData fetching complete.")
+    print("Fetching complete.")
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,8 @@
+2024 Movie Wrapped!
+
+Number of Movies: 28
+Average User Rating: 70.89
+Average Critic Rating: 69.57
+Most Popular Genre: Action
+Total Revenue: $9,389,576,202.00
+Total Budget: $2,746,500,000.00

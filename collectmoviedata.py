@@ -48,7 +48,6 @@ def initializedb():
     conn.commit()
     conn.close()
 
-#couldn't figure out 25 thing with this function
 def fetch_tmdb_data():
     """
     fetch TMDB movies. processes 25 movies at a time, store 100+ total in database.

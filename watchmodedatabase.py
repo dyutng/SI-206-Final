@@ -19,7 +19,6 @@ def initialize_watchmode_db():
             id INTEGER PRIMARY KEY,
             title TEXT NOT NULL,
             type TEXT NOT NULL,
-            runtime_minutes INTEGER,
             user_rating REAL,
             critic_score INTEGER,
             us_rating TEXT
@@ -53,19 +52,18 @@ def store_watchmode_data(titles):
         try:
             if title.get('type') != 'movie':
                 continue 
-            
+
             title_id = title.get('id')
             name = title.get('title')
             media_type = title.get('type')
-            runtime = title.get('runtime_minutes')
             user_rating = title.get('user_rating')
             critic_score = title.get('critic_score')
             us_rating = title.get('us_movie_rating', '')
 
             c.execute('''
-                INSERT OR IGNORE INTO watchmode_table (id, title, type, runtime_minutes, user_rating, critic_score, us_rating)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (title_id, name, media_type, runtime, user_rating, critic_score, us_rating))
+                INSERT OR IGNORE INTO watchmode_table (id, title, type, user_rating, critic_score, us_rating)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (title_id, name, media_type, user_rating, critic_score, us_rating))
 
         except Exception as e:
             print(f"Error inserting data: {e}")
@@ -81,7 +79,6 @@ def main():
     page = 1  
 
     while True:
-        print(f"Fetching page {page}...")
         titles = fetch_watchmode_data(page)
 
         if not titles:
@@ -99,9 +96,8 @@ def main():
         c.execute("SELECT COUNT(*) FROM watchmode_table")
         row_count = c.fetchone()[0]
         conn.close()
-
-        print(f"Current total rows in database: {row_count}")
-        if row_count >= 100:
+        
+        if row_count >= 125:
             print("Reached 100 rows. Exiting...")
             break
 

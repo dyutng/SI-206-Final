@@ -4,6 +4,7 @@ import requests
 import json
 import matplotlib.pyplot as plt
 import numpy as np
+
 WATCHMODE_API = 'MdMWcFQUQg5HXno0ctOJgGQEy4SNidU1QSfiYhc4'
 base_url = "https://api.watchmode.com/v1/title"
 godfather_url = f"https://api.watchmode.com/v1/title/1394258/details/?apiKey={WATCHMODE_API}"

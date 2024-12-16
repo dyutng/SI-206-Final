@@ -84,21 +84,26 @@ def plot_rating_vs_genre_box(df):
 
 def plot_revenue_vs_rating(df):
     """
-    Scatter plot of revenue vs. TMDB Ratings.
+    Scatter plot of revenue vs. TMDB Ratings with line of best fit.
     """
+    # Ensure revenue is numeric
     df['revenue'] = pd.to_numeric(df['revenue'].replace('N/A', '0').replace('$', '').replace(',', ''), errors='coerce')
     
-    df = df[df['revenue'] > 0]
+    # Filter out rows with revenue <= 0 or missing ratings
+    df = df[(df['revenue'] > 0) & (df['tmdb_rating'] > 0)]
 
     plt.figure(figsize=(12, 7))
-    sns.scatterplot(data=df, x='tmdb_rating', y='revenue')
 
-    plt.title('Revenue vs TMDB Ratings')
+    # Scatter plot with regression line
+    sns.regplot(data=df, x='tmdb_rating', y='revenue', scatter_kws={'alpha':0.5}, line_kws={'color':'red'})
+
+    plt.title('Revenue vs TMDB Ratings (with Line of Best Fit)')
     plt.xlabel('TMDB Rating (Out of 10)')
     plt.ylabel('Revenue (in Millions)')
     plt.tight_layout()
-    plt.savefig("revenue_vs_rating.png")
+    plt.savefig("revenue_vs_rating_with_fit.png")
     plt.show()
+
 
 def plot_avg_revenue_vs_genre_box(df):
     """

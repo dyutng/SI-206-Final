@@ -94,7 +94,7 @@ def plot_revenue_vs_rating(df):
 
     sns.regplot(data=df, x='tmdb_rating', y='revenue', scatter_kws={'alpha':0.5}, line_kws={'color':'red'})
 
-    plt.title('Revenue vs TMDB Ratings (with Line of Best Fit)')
+    plt.title('Revenue vs TMDB Ratings')
     plt.xlabel('TMDB Rating (Out of 10)')
     plt.ylabel('Revenue (in Millions)')
     plt.tight_layout()

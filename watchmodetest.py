@@ -63,7 +63,7 @@ ax.plot(x_positions, critic_scores, color="orange", linestyle="--", linewidth=1,
 ax.set_xticks(x_positions)
 ax.set_xticklabels(movie_names, rotation=45, ha="right")
 ax.set_ylabel("Scores (Out of 100)")
-ax.set_title("User Scores vs Critic Scores for Selected Movies")
+ax.set_title("User Scores vs Critic Scores for Top 5 Movies on IMDB")
 ax.legend()
 
 # Adds gridlines

@@ -94,7 +94,7 @@ def movie_wrapped_report_2024(output_file):
 
     with open(output_file, "w") as f:
         f.write("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
-        f.write("Welcome to your 2024 Movie Wrapped! (\u02f6\u1d94 \u1d55 \u1d94\u02f6)\n")
+        f.write("Welcome to your 2024 Movie Wrapped! (˶ᵔ ᵕ ᵔ˶)")
         f.write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
         f.write(f"\nNumber of Movies: {movies_num}\n")
         f.write(f"Average User Rating: {avg_user_score:.2f}\n")

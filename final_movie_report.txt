@@ -19,3 +19,4 @@ Total Budget: $2,684,500,000.00
 Number of movies with user score above 70: 53
 Average User Rating: 70.50
 Average Critic Rating: 70.42
+

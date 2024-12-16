@@ -3,7 +3,7 @@ import requests
 import json
 import sqlite3
 
-WATCHMODE_API = 'DbMuH0ESrIx555JHs5uWVftJPwfWEJJ4mu0PmPCr'
+WATCHMODE_API = 'ZJvecp43OpLgvDzIUA3SbEbqxvfLyfmGxVr65GNh'
 base_url = "https://api.watchmode.com/v1/title"
 list_titles_url = "https://api.watchmode.com/v1/list-titles/?apiKey=" + WATCHMODE_API
 
@@ -66,7 +66,7 @@ def get_movie_data(starting_page=1):
     page = starting_page
     batch_size = 25
     stored_movie_count = 0  
-    max_movies = 25 
+    max_movies = 25  
     processed_movie_ids = set() 
 
     conn = sqlite3.connect('movies.db')
@@ -85,7 +85,7 @@ def get_movie_data(starting_page=1):
             break
 
         for movie_name, movie_id, movie_type in movie_list:
-            if movie_type != 'movie': 
+            if movie_type != 'movie':  
                 continue
 
             if movie_id in processed_movie_ids:
@@ -93,7 +93,7 @@ def get_movie_data(starting_page=1):
 
             try:
                 user_score, critic_score = fetch_movies(movie_id)
-                if user_score == 0 and critic_score == 0:  
+                if user_score == 0 and critic_score == 0: 
                     continue 
 
                 conn = sqlite3.connect('movies.db')
@@ -110,8 +110,7 @@ def get_movie_data(starting_page=1):
                     user_scores.append(user_score * 10)
                     critic_scores.append(critic_score)
 
-                    processed_movie_ids.add(movie_id) 
-
+                    processed_movie_ids.add(movie_id)  
                     if stored_movie_count >= max_movies:
                         break
 
@@ -136,7 +135,7 @@ def main():
 
     print(f"Starting with {current_count} movies already in the database.")
 
-    starting_page = (current_count // 25) + 1  
+    starting_page = (current_count // 25) + 1 
 
     movie_names, user_scores, critic_scores = get_movie_data(starting_page=starting_page)
 

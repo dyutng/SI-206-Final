@@ -5,10 +5,6 @@ import pandas as pd
 import matplotlib.ticker as ticker
 
 def fetch_data():
-    """
-    Fetch and preprocess the data from the database.
-    Extracts relevant fields for runtime, genre, ratings, finances, and year.
-    """
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
 
@@ -36,7 +32,6 @@ def fetch_data():
 def plot_runtime_vs_genre(df):
     """
     Plot the average movie runtime for each genre (bar plot).
-    Exclude movies with runtime of 0 or NaN.
     """
     df_filtered = df[df['runtime'] > 0]
 
@@ -72,7 +67,7 @@ def plot_ratings_vs_genre_bar(df):
 
 def plot_rating_vs_genre_box(df):
     """
-    Create a box plot to show the distribution of TMDB ratings by genre.
+    Plot the distribution of TMDB ratings by genre (box plot).
     """
     df = df[df['tmdb_rating'] > 0]
 
@@ -84,7 +79,7 @@ def plot_rating_vs_genre_box(df):
     plt.ylabel('TMDB Rating (Out of 10)')
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.savefig("revenue_vs_genre_box.png")
+    plt.savefig("rating_vs_genre.png")
     plt.show()
 
 def plot_revenue_vs_rating(df):
@@ -105,7 +100,7 @@ def plot_revenue_vs_rating(df):
     plt.savefig("revenue_vs_rating.png")
     plt.show()
 
-def plot_avg_revenue_vs_genre(df):
+def plot_avg_revenue_vs_genre_box(df):
     """
     Box plot of revenue vs. genre.
     """
@@ -121,7 +116,7 @@ def plot_avg_revenue_vs_genre(df):
     plt.ylabel('Revenue (in Millions)')
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.savefig("revenue_vs_genre.png")
+    plt.savefig("revenue_vs_genre_box.png")
     plt.show()
 
 
@@ -131,7 +126,7 @@ def main():
     plot_runtime_vs_genre(df)
     plot_ratings_vs_genre_bar(df)
     plot_revenue_vs_rating(df)
-    plot_avg_revenue_vs_genre(df)
+    plot_avg_revenue_vs_genre_box(df)
     plot_rating_vs_genre_box(df)
 
 if __name__ == "__main__":

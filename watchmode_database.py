@@ -4,6 +4,7 @@ import json
 import sqlite3
 
 WATCHMODE_API = 'jcXnm67r17Oq1kjsuzjudwUDfuntYPZqaoWdHz64'
+# Spare API Keys
 # lC8YgVJaftntPgc3TC0a3s2xGK7BoURPl2dTeaG6
 base_url = "https://api.watchmode.com/v1/title"
 list_titles_url = "https://api.watchmode.com/v1/list-titles/?apiKey=" + WATCHMODE_API

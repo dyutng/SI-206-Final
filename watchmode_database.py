@@ -135,8 +135,6 @@ def main():
     current_count = c.fetchone()[0]
     conn.close()
 
-    #print(f"Starting with {current_count} movies already in the database.")
-
     starting_page = (current_count // 25) + 1 
 
     movie_names, user_scores, critic_scores = get_movie_data(starting_page = starting_page)

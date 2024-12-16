@@ -55,14 +55,14 @@ def fetch_tmdb_data():
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
     total_movies = 0
-    batch_limit = 25  
+    batchLimit = 25  
     page = 1
 
     c.execute("SELECT COUNT(*) FROM tmdb_movies")
     existing_movies = c.fetchone()[0]
     print(f"Currently {existing_movies} movies in the TMDB table.")
 
-    while total_movies < batch_limit:
+    while total_movies < batchLimit:
         try:
             movies = discover.discover_movies({
                 'sort_by': 'popularity.desc',
@@ -70,7 +70,7 @@ def fetch_tmdb_data():
             })
 
             for m in movies:
-                if total_movies >= batch_limit:
+                if total_movies >= batchLimit:
                     break
 
                 c.execute("SELECT 1 FROM tmdb_movies WHERE tmdb_id = ?", (m.id,))
@@ -113,7 +113,7 @@ def fetch_omdb_data():
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
     total_movies = 0
-    batch_limit = 25
+    batchLimit = 25
 
     c.execute("SELECT COUNT(*) FROM omdb_movies")
     existing_movies = c.fetchone()[0]

@@ -1,17 +1,21 @@
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Welcome to your 2024 Movie Wrapped! (˶ᵔ ᵕ ᵔ˶)
+Welcome to your 2024 Movie Wrapped! (˶ᶔ ᵕ ᶔ˶)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Number of Movies: 25
 Average User Rating: 71.20
 Average Critic Rating: 70.24
+Average TMDB Rating: 7.17
+Highest Rated Movie: The Wild Robot (85.0)
+Lowest Rated Movie: Mary (43.0)
+Movie with the Highest Revenue: Inside Out 2 ($1,698,586,747.00)
+Movie with the Least Revenue: Juror #2 ($18,791,698.00)
+Movie with the Largest Budget: Gladiator II ($310,000,000.00)
+Movie with the Smallest Budget: Heretic ($10,000,000.00)
 Most Popular Genre: Action
 Total Revenue: $8,841,983,931.00
 Total Budget: $2,684,500,000.00
-
-━━━━━━━━━━━━━━━━━━━
-Movie Statistcs
-━━━━━━━━━━━━━━━━━━━
-Average User Score: 70.5
-Average Critic Score: 70.42105263157895
-Movies with user score above 70: 53
+Number of movies with user score above 70: 53
+Average User Rating: 70.50
+Average Critic Rating: 70.42

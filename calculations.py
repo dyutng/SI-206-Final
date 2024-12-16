@@ -1,39 +1,5 @@
 import sqlite3
 
-def process_data(output_file):
-    conn = sqlite3.connect('movies.db')
-    c = conn.cursor()
-
-    c.execute('''
-        SELECT AVG(user_score), AVG(critic_score)
-        FROM watchmode_table
-    ''')
-    avg_user_score, avg_critic_score = c.fetchone()
-
-    c.execute('''
-        SELECT COUNT(*)
-        FROM watchmode_table
-        WHERE user_score > 70
-    ''')
-    high_rated_movies_count = c.fetchone()[0]
-
-    c.execute('''
-        SELECT tmdb_movies.title, tmdb_movies.release_date, omdb_movies.genre, tmdb_movies.tmdb_rating
-        FROM tmdb_movies
-        JOIN omdb_movies ON tmdb_movies.tmdb_id = omdb_movies.tmdb_id
-    ''')
-    joined_data = c.fetchall()
-
-    with open(output_file, "a") as f:
-        f.write("\n━━━━━━━━━━━━━━━━━━━\n")
-        f.write(f"Movie Statistcs\n")
-        f.write("━━━━━━━━━━━━━━━━━━━\n")
-        f.write(f"Average User Score: {avg_user_score}\n")
-        f.write(f"Average Critic Score: {avg_critic_score}\n")
-        f.write(f"Movies with user score above 70: {high_rated_movies_count}\n")
-
-    conn.close()
-
 def movie_wrapped_report_2024(output_file):
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
@@ -44,7 +10,10 @@ def movie_wrapped_report_2024(output_file):
             strftime('%Y', tmdb_movies.release_date) AS release_year,
             watchmode_table.user_score, 
             watchmode_table.critic_score,
-            omdb_movies.genre
+            omdb_movies.genre, 
+            tmdb_movies.revenue, 
+            tmdb_movies.budget,
+            tmdb_movies.tmdb_rating
         FROM tmdb_movies
         JOIN watchmode_table ON tmdb_movies.title = watchmode_table.movie_name
         JOIN omdb_movies ON tmdb_movies.tmdb_id = omdb_movies.tmdb_id
@@ -57,48 +26,87 @@ def movie_wrapped_report_2024(output_file):
         print("No movies found for the year 2024.")
         return
 
-    # init
-    totalUserScore = 0
-    totalCriticScore = 0
+    total_user_score = total_critic_score = total_tmdb_rating = 0
     genre_count = {}
-    moviesnum = len(data)
+    movies_num = len(data)
+
+    highest_rated_movie = lowest_rated_movie = None
+    highest_revenue_movie = least_revenue_movie = None
+    largest_budget_movie = smallest_budget_movie = None
+
+    max_user_score = float('-inf')
+    min_user_score = float('inf')
+    max_revenue = float('-inf')
+    min_revenue = float('inf')
+    max_budget = float('-inf')
+    min_budget = float('inf')
 
     for row in data:
-        title, release_year, user_score, critic_score, genre = row
-        totalUserScore += user_score if user_score is not None else 0
-        totalCriticScore += critic_score if critic_score is not None else 0
+        title, release_year, user_score, critic_score, genre, revenue, budget, tmdb_rating = row
+        
+        total_user_score += user_score if user_score else 0
+        total_critic_score += critic_score if critic_score else 0
+        total_tmdb_rating += tmdb_rating if tmdb_rating else 0
 
-        # genres are being saved as wholes, so we take the first genre
         if genre:
             first_genre = genre.split(",")[0].strip()
             genre_count[first_genre] = genre_count.get(first_genre, 0) + 1
 
-    avgUserScore = totalUserScore / moviesnum if moviesnum > 0 else 0
-    avg_critic_score = totalCriticScore / moviesnum if moviesnum > 0 else 0
+        if user_score:
+            if user_score > max_user_score:
+                max_user_score = user_score
+                highest_rated_movie = title
+            if user_score < min_user_score:
+                min_user_score = user_score
+                lowest_rated_movie = title
 
-    populargenre = max(genre_count, key=genre_count.get, default="N/A")
+        if revenue:
+            if revenue > max_revenue:
+                max_revenue = revenue
+                highest_revenue_movie = title
+            if revenue < min_revenue:
+                min_revenue = revenue
+                least_revenue_movie = title
+
+        if budget:
+            if budget > max_budget:
+                max_budget = budget
+                largest_budget_movie = title
+            if budget < min_budget:
+                min_budget = budget
+                smallest_budget_movie = title
+
+    avg_user_score = total_user_score / movies_num if movies_num else 0
+    avg_critic_score = total_critic_score / movies_num if movies_num else 0
+    avg_tmdb_rating = total_tmdb_rating / movies_num if movies_num else 0
+
+    popular_genre = max(genre_count, key=genre_count.get, default="N/A")
 
     c.execute('''
-        SELECT 
-            SUM(tmdb_movies.revenue) AS total_revenue,
-            SUM(tmdb_movies.budget) AS total_budget
+        SELECT SUM(tmdb_movies.revenue), SUM(tmdb_movies.budget)
         FROM tmdb_movies
         JOIN watchmode_table ON tmdb_movies.title = watchmode_table.movie_name
         WHERE strftime('%Y', tmdb_movies.release_date) = '2024'
     ''')
-
-    revenue_budget = c.fetchone()
-    total_revenue = revenue_budget[0] if revenue_budget[0] else 0
-    total_budget = revenue_budget[1] if revenue_budget[1] else 0
+    total_revenue, total_budget = c.fetchone()
+    total_revenue = total_revenue if total_revenue else 0
+    total_budget = total_budget if total_budget else 0
 
     with open(output_file, "w") as f:
+        f.write("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+        f.write("Welcome to your 2024 Movie Wrapped! (\u02f6\u1d94 \u1d55 \u1d94\u02f6)\n")
         f.write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
-        f.write(f"Welcome to your 2024 Movie Wrapped! (˶ᵔ ᵕ ᵔ˶)\n")
-        f.write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
-        f.write(f"\nNumber of Movies: {moviesnum}\n")
-        f.write(f"Average User Rating: {avgUserScore:.2f}\n")
+        f.write(f"\nNumber of Movies: {movies_num}\n")
+        f.write(f"Average User Rating: {avg_user_score:.2f}\n")
         f.write(f"Average Critic Rating: {avg_critic_score:.2f}\n")
-        f.write(f"Most Popular Genre: {populargenre}\n")
+        f.write(f"Average TMDB Rating: {avg_tmdb_rating:.2f}\n")
+        f.write(f"Highest Rated Movie: {highest_rated_movie} ({max_user_score})\n")
+        f.write(f"Lowest Rated Movie: {lowest_rated_movie} ({min_user_score})\n")
+        f.write(f"Movie with the Highest Revenue: {highest_revenue_movie} (${max_revenue:,.2f})\n")
+        f.write(f"Movie with the Least Revenue: {least_revenue_movie} (${min_revenue:,.2f})\n")
+        f.write(f"Movie with the Largest Budget: {largest_budget_movie} (${max_budget:,.2f})\n")
+        f.write(f"Movie with the Smallest Budget: {smallest_budget_movie} (${min_budget:,.2f})\n")
+        f.write(f"Most Popular Genre: {popular_genre}\n")
         f.write(f"Total Revenue: ${total_revenue:,.2f}\n")
         f.write(f"Total Budget: ${total_budget:,.2f}\n")
 
@@ -107,5 +115,4 @@ def movie_wrapped_report_2024(output_file):
 if __name__ == "__main__":
     output_file = "final_movie_report.txt"
     movie_wrapped_report_2024(output_file)
-    process_data(output_file) 
     print(f"Report generated successfully in '{output_file}'.")

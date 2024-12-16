@@ -80,7 +80,7 @@ def movie_wrapped_report_2024(output_file):
     avg_critic_score = total_critic_score / movies_num if movies_num else 0
     avg_tmdb_rating = total_tmdb_rating / movies_num if movies_num else 0
 
-    popular_genre = max(genre_count, key=genre_count.get, default="N/A")
+    popular_genre = max(genre_count, key = genre_count.get, default="N/A")
 
     c.execute('''
         SELECT SUM(tmdb_movies.revenue), SUM(tmdb_movies.budget)
@@ -95,7 +95,7 @@ def movie_wrapped_report_2024(output_file):
     with open(output_file, "w") as f:
         f.write("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
         f.write("Welcome to your 2024 Movie Wrapped! (˶ᵔ ᵕ ᵔ˶)")
-        f.write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+        f.write("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
         f.write(f"\nNumber of Movies: {movies_num}\n")
         f.write(f"Average User Rating: {avg_user_score:.2f}\n")
         f.write(f"Average Critic Rating: {avg_critic_score:.2f}\n")
@@ -113,6 +113,6 @@ def movie_wrapped_report_2024(output_file):
     conn.close()
 
 if __name__ == "__main__":
-    output_file = "final_movie_report.txt"
+    output_file = "wrapped.txt"
     movie_wrapped_report_2024(output_file)
     print(f"Report generated successfully in '{output_file}'.")

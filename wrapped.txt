@@ -1,6 +1,6 @@
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Welcome to your 2024 Movie Wrapped! (˶ᶔ ᵕ ᶔ˶)
+Welcome to your 2024 Movie Wrapped! (˶ᵔ ᵕ ᵔ˶)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Number of Movies: 25
@@ -16,7 +16,3 @@ Movie with the Smallest Budget: Heretic ($10,000,000.00)
 Most Popular Genre: Action
 Total Revenue: $8,841,983,931.00
 Total Budget: $2,684,500,000.00
-Number of movies with user score above 70: 53
-Average User Rating: 70.50
-Average Critic Rating: 70.42
-

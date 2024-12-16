@@ -58,7 +58,7 @@ def movie_wrapped_report_2024():
     total_budget = revenue_budget[1] if revenue_budget[1] else 0
 
     with open("2024moviewrapped.txt", "w") as f:
-        f.write(f"2024 Movie Wrapped!\n")
+        f.write(f"Welcome to your 2024 Movie Wrapped!\n")
         f.write(f"\nNumber of Movies: {moviesnum}\n")
         f.write(f"Average User Rating: {avgUserScore:.2f}\n")
         f.write(f"Average Critic Rating: {avg_critic_score:.2f}\n")

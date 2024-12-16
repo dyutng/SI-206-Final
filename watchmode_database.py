@@ -12,7 +12,7 @@ def initialize_database():
     c = conn.cursor()
 
     c.execute('''
-        CREATE TABLE IF NOT EXISTS movies (
+        CREATE TABLE IF NOT EXISTS watchmode_table (
               id INTEGER PRIMARY KEY,
               movie_name TEXT NOT NULL UNIQUE,
               type TEXT NOT NULL, 
@@ -35,7 +35,7 @@ def store_movie_data(movie_name, movie_type, user_score, critic_score):
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
     c.execute('''
-        INSERT OR IGNORE INTO movies (movie_name, type, user_score, critic_score)
+        INSERT OR IGNORE INTO watchmode_table (movie_name, type, user_score, critic_score)
         VALUES (?, ?, ?, ?)
     ''', (movie_name, movie_type, user_score, critic_score))
     conn.commit()
@@ -71,14 +71,14 @@ def get_movie_data(starting_page=1):
 
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
-    c.execute('SELECT COUNT(*) FROM movies')
+    c.execute('SELECT COUNT(*) FROM watchmode_table')
     current_count = c.fetchone()[0]
     conn.close()
 
     print(f"Currently {current_count} movies in the database.")
 
     while stored_movie_count < max_movies:
-        movie_list = get_movie_list(page=page, limit=batch_size)
+        movie_list = get_movie_list(page = page, limit = batch_size)
 
         if not movie_list:
             print("No more movies found or error occurred.")
@@ -98,7 +98,7 @@ def get_movie_data(starting_page=1):
 
                 conn = sqlite3.connect('movies.db')
                 c = conn.cursor()
-                c.execute('SELECT COUNT(*) FROM movies WHERE movie_name = ?', 
+                c.execute('SELECT COUNT(*) FROM watchmode_table WHERE movie_name = ?', 
                           (movie_name,))
                 count = c.fetchone()[0]
                 conn.close()
@@ -119,25 +119,25 @@ def get_movie_data(starting_page=1):
 
         page += 1  
     
-    print(f"Movie data fetch completed. Total movies added this run: {stored_movie_count}")
+    print(f"\nMovie data fetch completed. Total movies added this run: {stored_movie_count}")
     return movie_names, user_scores, critic_scores
 
 def main():
     print("Initializing the database...")
     initialize_database()
-    print("Database initialized successfully.")
+    print("Database initialized successfully.\n")
 
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
-    c.execute('SELECT COUNT(*) FROM movies')
+    c.execute('SELECT COUNT(*) FROM watchmode_table')
     current_count = c.fetchone()[0]
     conn.close()
 
-    print(f"Starting with {current_count} movies already in the database.")
+    #print(f"Starting with {current_count} movies already in the database.")
 
     starting_page = (current_count // 25) + 1 
 
-    movie_names, user_scores, critic_scores = get_movie_data(starting_page=starting_page)
+    movie_names, user_scores, critic_scores = get_movie_data(starting_page = starting_page)
 
     print("Fetching complete.")
 

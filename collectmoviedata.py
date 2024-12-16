@@ -143,7 +143,8 @@ def fetch_omdb_data():
                     c.execute('''
                         INSERT OR IGNORE INTO omdb_movies (tmdb_id, title, year, genre, runtime, box_office)
                         VALUES (?, ?, ?, ?, ?, ?)''',
-                              (tmdb_id, title, year, genre, int(runtime) if runtime.isdigit() else 0, box_office))
+                              (tmdb_id, title, year, genre, int(runtime) if runtime.isdigit() else 0, 
+                               box_office))
                     total_movies += 1
                     #print(f"Added OMDB movie: {title} ({year})")
 

@@ -86,15 +86,12 @@ def plot_revenue_vs_rating(df):
     """
     Scatter plot of revenue vs. TMDB Ratings with line of best fit.
     """
-    # Ensure revenue is numeric
     df['revenue'] = pd.to_numeric(df['revenue'].replace('N/A', '0').replace('$', '').replace(',', ''), errors='coerce')
     
-    # Filter out rows with revenue <= 0 or missing ratings
     df = df[(df['revenue'] > 0) & (df['tmdb_rating'] > 0)]
 
     plt.figure(figsize=(12, 7))
 
-    # Scatter plot with regression line
     sns.regplot(data=df, x='tmdb_rating', y='revenue', scatter_kws={'alpha':0.5}, line_kws={'color':'red'})
 
     plt.title('Revenue vs TMDB Ratings (with Line of Best Fit)')

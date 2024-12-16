@@ -16,9 +16,6 @@ tmdb.api_key = TMDB_API_KEY
 movie = Movie()
 discover = Discover()
 
-# Watchmode API key
-WM_API_KEY = 'MdMWcFQUQg5HXno0ctOJgGQEy4SNidU1QSfiYhc4'
-
 def initializedb():
     """
     initialize database with separate tables for OMDB and TMDB.
@@ -58,11 +55,15 @@ def fetch_tmdb_data():
     """
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
-    total_movies = 0  
-    max_movies = 120 # had to set a limit or else it would keep on going forever
-    page = 1          
+    total_movies = 0
+    batch_limit = 25  
+    page = 1
 
-    while total_movies < max_movies:
+    c.execute("SELECT COUNT(*) FROM tmdb_movies")
+    existing_movies = c.fetchone()[0]
+    print(f"Currently {existing_movies} movies in the TMDB table.")
+
+    while total_movies < batch_limit:
         try:
             movies = discover.discover_movies({
                 'sort_by': 'popularity.desc',
@@ -70,8 +71,12 @@ def fetch_tmdb_data():
             })
 
             for m in movies:
-                if total_movies >= max_movies:
+                if total_movies >= batch_limit:
                     break
+
+                c.execute("SELECT 1 FROM tmdb_movies WHERE tmdb_id = ?", (m.id,))
+                if c.fetchone():
+                    continue
 
                 try:
                     details = movie.details(m.id)
@@ -90,7 +95,7 @@ def fetch_tmdb_data():
                     print(f"Failed to fetch details for movie ID {m.id}: {e}")
 
             page += 1
-            time.sleep(1) 
+            time.sleep(1)
 
         except Exception as e:
             print(f"Error fetching data from TMDB API: {e}")
@@ -98,7 +103,8 @@ def fetch_tmdb_data():
 
     conn.commit()
     conn.close()
-    print(f"TMDB data fetch completed. Total movies fetched: {total_movies}")
+    print(f"TMDB data fetch completed. Total movies added this run: {total_movies}")
+
 
 
 def fetch_omdb_data():
@@ -107,7 +113,12 @@ def fetch_omdb_data():
     """
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
-    total_movies = 0 
+    total_movies = 0
+    batch_limit = 25
+
+    c.execute("SELECT COUNT(*) FROM omdb_movies")
+    existing_movies = c.fetchone()[0]
+    print(f"Currently {existing_movies} movies in the OMDB table.")
 
     c.execute('''
         SELECT tmdb_id, title, release_date FROM tmdb_movies 
@@ -135,11 +146,7 @@ def fetch_omdb_data():
                         VALUES (?, ?, ?, ?, ?, ?)''',
                               (tmdb_id, title, year, genre, int(runtime) if runtime.isdigit() else 0, box_office))
                     total_movies += 1
-                    #print(f"inserted omdb movie: {title} ({year})")
-                #else:
-                #    print(f"OMDB API returned no data for: {title} ({year})")
-            #else:
-            #    print(f"failed for {title}:  {response.status_code}")
+                    #print(f"Added OMDB movie: {title} ({year})")
 
             time.sleep(0.5)  
 
@@ -148,7 +155,7 @@ def fetch_omdb_data():
 
     conn.commit()
     conn.close()
-    print(f"OMDB fetch completed. Total movies fetched: {total_movies}") 
+    print(f"OMDB fetch completed. Total movies added this run: {total_movies}")
 
 def main():
     print("Initializing the database...")

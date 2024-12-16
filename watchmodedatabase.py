@@ -51,6 +51,9 @@ def store_watchmode_data(titles):
     
     for title in titles:
         try:
+            if title.get('type') != 'movie':
+                continue 
+            
             title_id = title.get('id')
             name = title.get('title')
             media_type = title.get('type')

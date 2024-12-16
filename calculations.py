@@ -10,16 +10,12 @@ def process_data(output_file):
     ''')
     avg_user_score, avg_critic_score = c.fetchone()
 
-    print(f"Average User Score: {avg_user_score}")
-    print(f"Average Critic Score: {avg_critic_score}")
-
     c.execute('''
         SELECT COUNT(*)
         FROM watchmode_table
         WHERE user_score > 70
     ''')
     high_rated_movies_count = c.fetchone()[0]
-    print(f"Movies with user score above 70: {high_rated_movies_count}")
 
     c.execute('''
         SELECT tmdb_movies.title, tmdb_movies.release_date, omdb_movies.genre, tmdb_movies.tmdb_rating
@@ -28,7 +24,10 @@ def process_data(output_file):
     ''')
     joined_data = c.fetchall()
 
-    with open(output_file, "w") as f:
+    with open(output_file, "a") as f:
+        f.write("\n━━━━━━━━━━━━━━━━━━━\n")
+        f.write(f"Movie Statistcs\n")
+        f.write("━━━━━━━━━━━━━━━━━━━\n")
         f.write(f"Average User Score: {avg_user_score}\n")
         f.write(f"Average Critic Score: {avg_critic_score}\n")
         f.write(f"Movies with user score above 70: {high_rated_movies_count}\n")
@@ -108,5 +107,5 @@ def movie_wrapped_report_2024(output_file):
 if __name__ == "__main__":
     output_file = "final_movie_report.txt"
     movie_wrapped_report_2024(output_file)
-    process_data(output_file)  
+    process_data(output_file) 
     print(f"Report generated successfully in '{output_file}'.")

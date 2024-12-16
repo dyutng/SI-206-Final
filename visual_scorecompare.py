@@ -6,6 +6,8 @@ def get_common_movies():
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
 
+    #get common movies from tmdb, omdb, and watchmode tables
+    #like movies that are in all 3
     c.execute('''
         SELECT tmdb_movies.tmdb_id, tmdb_movies.title, tmdb_movies.tmdb_rating, 
                watchmode_table.user_score, watchmode_table.critic_score
@@ -27,6 +29,8 @@ def plot_scores():
     critic_scores = []
     movie_titles = []
     
+    #format the numbers, some are out of 100 and some are out of 10
+    #want it out of 10
     for movie in common_movies:
         tmdb_ratings.append(movie[2])  # tmdb rating is out of 10
         user_scores.append(movie[3] / 10)  # watchmode user score to out of 10

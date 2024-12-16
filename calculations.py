@@ -22,18 +22,22 @@ def movie_wrapped_report_2024(output_file):
 
     data = c.fetchall()
 
+    #since we want to do 2024, we first need to check if there are no movies for the year 2024
     if not data:
         print("No movies found for the year 2024.")
         return
 
     total_user_score = total_critic_score = total_tmdb_rating = 0
-    genre_count = {}
+    genre_count = {} #dictionary to track genre occurrences
     movies_num = len(data)
 
     highest_rated_movie = lowest_rated_movie = None
     highest_revenue_movie = least_revenue_movie = None
     largest_budget_movie = smallest_budget_movie = None
 
+    #set initial values for comparison
+    #float(-inf) is for max comparisons
+    #guarantees any real num value (pos/neg) will replace these values on the first comparison
     max_user_score = float('-inf')
     min_user_score = float('inf')
     max_revenue = float('-inf')
@@ -44,14 +48,17 @@ def movie_wrapped_report_2024(output_file):
     for row in data:
         title, release_year, user_score, critic_score, genre, revenue, budget, tmdb_rating = row
         
+        #accumulate scores so i can calculate averages
         total_user_score += user_score if user_score else 0
         total_critic_score += critic_score if critic_score else 0
         total_tmdb_rating += tmdb_rating if tmdb_rating else 0
 
+        #count the most common genre 
         if genre:
             first_genre = genre.split(",")[0].strip()
             genre_count[first_genre] = genre_count.get(first_genre, 0) + 1
 
+        #highest and lowest user scores
         if user_score:
             if user_score > max_user_score:
                 max_user_score = user_score
@@ -60,6 +67,7 @@ def movie_wrapped_report_2024(output_file):
                 min_user_score = user_score
                 lowest_rated_movie = title
 
+        #highest and lowest revenue movies
         if revenue:
             if revenue > max_revenue:
                 max_revenue = revenue
@@ -68,6 +76,7 @@ def movie_wrapped_report_2024(output_file):
                 min_revenue = revenue
                 least_revenue_movie = title
 
+        # largest and smallest budget movies
         if budget:
             if budget > max_budget:
                 max_budget = budget
@@ -82,6 +91,7 @@ def movie_wrapped_report_2024(output_file):
 
     popular_genre = max(genre_count, key = genre_count.get, default="N/A")
 
+    #calculate total revenue and total budget for 2024 movies
     c.execute('''
         SELECT SUM(tmdb_movies.revenue), SUM(tmdb_movies.budget)
         FROM tmdb_movies

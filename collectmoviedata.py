@@ -11,10 +11,10 @@ OMDB_URL = "http://www.omdbapi.com/"
 
 # TMDB API key
 TMDB_API_KEY = 'f4e6cb562855574dff73c7801d4cebbf'
-tmdb = TMDb()
-tmdb.api_key = TMDB_API_KEY
-movie = Movie()
-discover = Discover()
+tmdb = TMDb() #initialize tmdb api
+tmdb.api_key = TMDB_API_KEY  #set tmdb api key
+movie = Movie() #movie object for accessing tmdb movie details
+discover = Discover() #discover object for fetching popular movies
 
 def initializedb():
     """
@@ -58,21 +58,26 @@ def fetch_tmdb_data():
     batchLimit = 25  
     page = 1
 
+    # check how many movies are already in the tmdb table
     c.execute("SELECT COUNT(*) FROM tmdb_movies")
     existing_movies = c.fetchone()[0]
     print(f"Currently {existing_movies} movies in the TMDB table.")
 
+    #loop to fetch movies until batch limit is reached
     while total_movies < batchLimit:
         try:
+            #fetch popular movies from tmdb api
             movies = discover.discover_movies({
-                'sort_by': 'popularity.desc',
+                'sort_by': 'popularity.desc', #sort by popularity
                 'page': page
             })
 
+            #loop through fetched movies
             for m in movies:
                 if total_movies >= batchLimit:
                     break
 
+                #check if movie already exists in the database
                 c.execute("SELECT 1 FROM tmdb_movies WHERE tmdb_id = ?", (m.id,))
                 if c.fetchone():
                     continue
@@ -94,7 +99,7 @@ def fetch_tmdb_data():
                     print(f"Failed to fetch details for movie ID {m.id}: {e}")
 
             page += 1
-            time.sleep(1)
+            time.sleep(1) #avoid going over api rate limits
 
         except Exception as e:
             print(f"Error fetching data from TMDB API: {e}")
@@ -115,10 +120,12 @@ def fetch_omdb_data():
     total_movies = 0
     batchLimit = 25
 
+    #check how many movies are already in the omdb table
     c.execute("SELECT COUNT(*) FROM omdb_movies")
     existing_movies = c.fetchone()[0]
     print(f"Currently {existing_movies} movies in the OMDB table.")
 
+    #fetch tmdb movies that are not yet processed in omdb table
     c.execute('''
         SELECT tmdb_id, title, release_date FROM tmdb_movies 
         WHERE tmdb_id NOT IN (SELECT tmdb_id FROM omdb_movies)
@@ -130,10 +137,11 @@ def fetch_omdb_data():
         try:
             year = datetime.datetime.strptime(release_date, '%Y-%m-%d').year if release_date else None
 
+            #prepare request parameters for omdb api
             params = {'t': title, 'y': year, 'apikey': OMDB_API_KEY}
-            response = requests.get(OMDB_URL, params=params)
-            if response.status_code == 200:
-                data = response.json()
+            response = requests.get(OMDB_URL, params=params)  #make api request
+            if response.status_code == 200:  #check for successful response
+                data = response.json() #parse json response
 
                 if data.get("Response") == "True":
                     runtime = data.get("Runtime", "0 min").split()[0]
@@ -147,6 +155,7 @@ def fetch_omdb_data():
                                box_office))
                     total_movies += 1
 
+            #pause to avoid exceeding api rate limits
             time.sleep(0.5)  
 
         except Exception as e:

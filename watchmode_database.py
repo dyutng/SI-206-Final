@@ -4,21 +4,26 @@ import json
 import sqlite3
 
 WATCHMODE_API = 'jcXnm67r17Oq1kjsuzjudwUDfuntYPZqaoWdHz64'
+
 # Spare API Keys:
 # lC8YgVJaftntPgc3TC0a3s2xGK7BoURPl2dTeaG6
 # iLne4elGtUFYcXEBZAR9Z89p4JDLf0EXOgSOtVmC
 # RrqdEqYeGIltkfmnW8BA1cDu3c5xyiYIldfZnKhN 
 # WY5zoIJY8YJxP9VKwReDGFOYBwZtQxrelOnouu2e
 
-base_url = "https://api.watchmode.com/v1/title"
-list_titles_url = "https://api.watchmode.com/v1/list-titles/?apiKey=" + WATCHMODE_API
+#theres a limit of 1000 per api key
+#if it says too many requests or something like that you need to change your api key
 
-def initialize_database():
+baseURL = "https://api.watchmode.com/v1/title"
+listTitleURL = "https://api.watchmode.com/v1/list-titles/?apiKey=" + WATCHMODE_API
+
+
+def initialize_database(): #making watchmode_table
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
 
     c.execute('''
-        CREATE TABLE IF NOT EXISTS watchmode_table (
+        CREATE TABLE IF NOT EXISTS watchmode_table ( 
               id INTEGER PRIMARY KEY,
               movie_name TEXT NOT NULL UNIQUE,
               type TEXT NOT NULL, 
@@ -30,13 +35,15 @@ def initialize_database():
     conn.close()
 
 def fetch_movies(movie_id):
-    url = f"{base_url}/{movie_id}/details/?apiKey={WATCHMODE_API}"
+    url = f"{baseURL}/{movie_id}/details/?apiKey={WATCHMODE_API}"
     with urllib.request.urlopen(url) as response:
         data = json.loads(response.read().decode())
         user_rating = data.get("user_rating", 0) 
         critic_score = data.get("critic_score", 0)  
         return user_rating, critic_score
 
+#store info (name, type, user score, critic score in the db
+# ignore if theres duplicates
 def store_movie_data(movie_name, movie_type, user_score, critic_score):
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
@@ -47,12 +54,15 @@ def store_movie_data(movie_name, movie_type, user_score, critic_score):
     conn.commit()
     conn.close()
 
+
+#getz a list of movies with title, id, and type from the watchmode api.
+# processes movies page by page, limit of 25 movies
 def get_movie_list(page = 1, limit = 25):
     try:
-        url = f"{list_titles_url}&page={page}&limit={limit}"
-        response = requests.get(url)
-        if response.status_code == 200:
-            data = response.json()
+        url = f"{listTitleURL}&page={page}&limit={limit}" #api request url
+        response = requests.get(url)  #get request to watchmode api
+        if response.status_code == 200: #check if request was successful
+            data = response.json() #parse json response
             titles = data.get('titles', [])
             movie_list = [(title['title'], title['id'], title['type']) for title in titles]
             return movie_list
@@ -63,7 +73,7 @@ def get_movie_list(page = 1, limit = 25):
         print(f"Error fetching movie list: {e}")
         return []
 
-def get_movie_data(starting_page=1):
+def get_movie_data(starting_page = 1):
 
     movie_names = []
     user_scores = []
@@ -75,6 +85,7 @@ def get_movie_data(starting_page=1):
     max_movies = 25  
     processed_movie_ids = set() 
 
+    #check the current number of movies in the database
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
     c.execute('SELECT COUNT(*) FROM watchmode_table')
@@ -91,17 +102,18 @@ def get_movie_data(starting_page=1):
             break
 
         for movie_name, movie_id, movie_type in movie_list:
-            if movie_type != 'movie':  
+            if movie_type != 'movie':  #skip non-movies (in movie_type)
                 continue
 
-            if movie_id in processed_movie_ids:
+            if movie_id in processed_movie_ids: #skip already movie ids that are alr processed
                 continue
 
             try:
                 user_score, critic_score = fetch_movies(movie_id)
-                if user_score == 0 and critic_score == 0: 
+                if user_score == 0 and critic_score == 0: #skip movies with no scores
                     continue 
 
+                #check if the movie already exists in the database
                 conn = sqlite3.connect('movies.db')
                 c = conn.cursor()
                 c.execute('SELECT COUNT(*) FROM watchmode_table WHERE movie_name = ?', 
@@ -116,7 +128,7 @@ def get_movie_data(starting_page=1):
                     user_scores.append(user_score * 10)
                     critic_scores.append(critic_score)
 
-                    processed_movie_ids.add(movie_id)  
+                    processed_movie_ids.add(movie_id) #mark movie id as processed
                     if stored_movie_count >= max_movies:
                         break
 
@@ -141,7 +153,8 @@ def main():
 
     starting_page = (current_count // 25) + 1 
 
-    movie_names, user_scores, critic_scores = get_movie_data(starting_page = starting_page)
+    #calculate starting page based on existing movies  
+    movie_names, user_scores, critic_scores = get_movie_data(starting_page = starting_page) 
 
     print("Fetching complete.")
 

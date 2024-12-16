@@ -16,6 +16,9 @@ tmdb.api_key = TMDB_API_KEY
 movie = Movie()
 discover = Discover()
 
+# Watchmode API key
+WM_API_KEY = 'MdMWcFQUQg5HXno0ctOJgGQEy4SNidU1QSfiYhc4'
+
 def initializedb():
     """
     initialize database with separate tables for OMDB and TMDB.

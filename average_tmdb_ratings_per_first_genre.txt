@@ -1,0 +1,14 @@
+Genre, Average TMDB Rating
+Action, 6.70
+Drama, 6.99
+Adventure, 4.91
+Horror, 6.47
+Animation, 7.48
+Comedy, 6.83
+Crime, 5.87
+Romance, 6.40
+War, 5.70
+Sci-Fi, 6.72
+Thriller, 6.99
+Short, 7.40
+Music, 7.38

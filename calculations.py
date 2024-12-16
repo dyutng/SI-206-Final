@@ -1,6 +1,6 @@
 import sqlite3
 
-def movie_wrapped_report_2024():
+def movie_wrapped_report_2024(output_file):
     conn = sqlite3.connect('movies.db')
     c = conn.cursor()
 
@@ -57,8 +57,10 @@ def movie_wrapped_report_2024():
     total_revenue = revenue_budget[0] if revenue_budget[0] else 0
     total_budget = revenue_budget[1] if revenue_budget[1] else 0
 
-    with open("2024moviewrapped.txt", "w") as f:
+    with open(output_file, "w") as f:
+        f.write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
         f.write(f"Welcome to your 2024 Movie Wrapped! (˶ᵔ ᵕ ᵔ˶)\n")
+        f.write("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
         f.write(f"\nNumber of Movies: {moviesnum}\n")
         f.write(f"Average User Rating: {avgUserScore:.2f}\n")
         f.write(f"Average Critic Rating: {avg_critic_score:.2f}\n")
@@ -69,4 +71,7 @@ def movie_wrapped_report_2024():
     conn.close()
 
 if __name__ == "__main__":
-    movie_wrapped_report_2024()
+    output_file = "final_movie_report.txt"
+    movie_wrapped_report_2024(output_file)
+    print(f"Report generated successfully in '{output_file}'.")
+

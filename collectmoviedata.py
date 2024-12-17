@@ -57,15 +57,15 @@ def fetch_tmdb_data():
     batchLimit = 25  
     page = 1
 
-    # Check how many movies are already in the tmdb table
+    # check how many movies are already in the tmdb table
     c.execute("SELECT COUNT(*) FROM tmdb_movies")
     existing_movies = c.fetchone()[0]
     print(f"Currently {existing_movies} movies in the TMDB table.")
 
-    # Loop to fetch movies until batch limit is reached
+    # loop to fetch movies until batch limit is reached
     while total_movies < batchLimit:
         try:
-            # Fetch popular movies from tmdb api
+            # fetch popular movies from tmdb api
             movies = discover.discover_movies({
                 'sort_by': 'popularity.desc',  # Sort by popularity
                 'page': page
@@ -76,7 +76,7 @@ def fetch_tmdb_data():
                 if total_movies >= batchLimit:
                     break
 
-                # Check if movie already exists in the database
+                # check if movie already exists in the database
                 c.execute("SELECT 1 FROM tmdb_movies WHERE tmdb_id = ? OR title = ?", (m.id, m.title))
                 if c.fetchone():
                     continue
@@ -98,7 +98,7 @@ def fetch_tmdb_data():
                     print(f"Failed to fetch details for movie ID {m.id}: {e}")
 
             page += 1
-            time.sleep(1)  # Avoid going over API rate limits
+            time.sleep(1)  # avoid going over API rate limits
 
         except Exception as e:
             print(f"Error fetching data from TMDB API: {e}")
@@ -134,11 +134,11 @@ def fetch_omdb_data():
         try:
             year = datetime.datetime.strptime(release_date, '%Y-%m-%d').year if release_date else None
 
-            # Prepare request parameters for OMDB API
+            # prepare request parameters for OMDB API
             params = {'t': title, 'y': year, 'apikey': OMDB_API_KEY}
-            response = requests.get(OMDB_URL, params=params)  # Make API request
-            if response.status_code == 200:  # Check for successful response
-                data = response.json()  # Parse JSON response
+            response = requests.get(OMDB_URL, params=params)  # make API request
+            if response.status_code == 200:  # check for successful response
+                data = response.json()  # parse JSON response
 
                 if data.get("Response") == "True":
                     runtime = data.get("Runtime", "0 min").split()[0]

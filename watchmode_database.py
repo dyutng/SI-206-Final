@@ -3,13 +3,11 @@ import requests
 import json
 import sqlite3
 
-WATCHMODE_API = 'WY5zoIJY8YJxP9VKwReDGFOYBwZtQxrelOnouu2e'
-
-# Spare API Key (for grading session):
-# RrqdEqYeGIltkfmnW8BA1cDu3c5xyiYIldfZnKhN
+WATCHMODE_API = '9r9KM6Fmbqv3iEArWQC8aOrkDfcHUUXdMhwhUsN2'
 
 # Spare API Key (for submission, instructor's grading):
 # bnIgnohrXlQ8tEvO7kzqjguo2RUqSYGg72N0QPYR
+# RrqdEqYeGIltkfmnW8BA1cDu3c5xyiYIldfZnKhN
 
 #theres a limit of 1000 per api key
 #if it says too many requests or something like that you need to change your api key

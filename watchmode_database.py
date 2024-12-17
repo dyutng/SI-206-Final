@@ -3,7 +3,7 @@ import requests
 import json
 import sqlite3
 
-WATCHMODE_API = 'WY5zoIJY8YJxP9VKwReDGFOYBwZtQxrelOnouu2e'
+WATCHMODE_API = 'RrqdEqYeGIltkfmnW8BA1cDu3c5xyiYIldfZnKhN'
 
 # Spare API Keys:
 # RrqdEqYeGIltkfmnW8BA1cDu3c5xyiYIldfZnKhN

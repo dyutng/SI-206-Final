@@ -46,7 +46,7 @@ def plot_runtime_vs_genre(df):
     genre_runtime = filterdf.groupby('genre')['runtime'].mean().dropna().sort_values(ascending = False)
 
     plt.figure(figsize = (12, 6))
-    sns.barplot(x = genre_runtime.index, y = genre_runtime.values)
+    sns.barplot(x = genre_runtime.index, y = genre_runtime.values, color='skyblue')
 
     plt.xticks(rotation=45)
     plt.title('Average Movie Runtime by Genre')
@@ -64,7 +64,7 @@ def plot_ratings_vs_genre_bar(df):
     genre_ratings = df.groupby('genre')['tmdb_rating'].mean().dropna().sort_values(ascending = False)
 
     plt.figure(figsize = (12, 6))
-    sns.barplot(x = genre_ratings.index, y = genre_ratings.values)
+    sns.barplot(x = genre_ratings.index, y = genre_ratings.values, color='#FF5733')
 
     plt.xticks(rotation = 45)
     plt.title('Average TMDB Ratings by Genre')
@@ -82,7 +82,7 @@ def plot_rating_vs_genre_box(df):
     df = df[df['tmdb_rating'] > 0]
 
     plt.figure(figsize = (12, 6))
-    sns.boxplot(x = 'genre', y = 'tmdb_rating', data = df)
+    sns.boxplot(x = 'genre', y = 'tmdb_rating', data = df, color='lightgreen')
 
     plt.title('Distribution of TMDB Ratings by Genre')
     plt.xlabel('Genre')
@@ -128,7 +128,7 @@ def plot_avg_revenue_vs_genre_box(df):
     df = df[df['revenue'] > 0]
 
     plt.figure(figsize = (12, 6))
-    sns.boxplot(data = df, x = 'genre', y = 'revenue')
+    sns.boxplot(data = df, x = 'genre', y = 'revenue', color='#FFCC99')
 
     plt.title('Revenue by Genre')
     plt.xlabel('Genre')

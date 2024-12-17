@@ -6,7 +6,6 @@ import sqlite3
 WATCHMODE_API = 'RrqdEqYeGIltkfmnW8BA1cDu3c5xyiYIldfZnKhN'
 
 # Spare API Keys:
-# RrqdEqYeGIltkfmnW8BA1cDu3c5xyiYIldfZnKhN 
 # WY5zoIJY8YJxP9VKwReDGFOYBwZtQxrelOnouu2e
 
 #theres a limit of 1000 per api key

@@ -15,10 +15,16 @@ def movie_wrapped_report_2024(output_file):
             tmdb_movies.budget,
             tmdb_movies.tmdb_rating
         FROM tmdb_movies
-        JOIN watchmode_table ON tmdb_movies.title = watchmode_table.movie_name
+        JOIN watchmode_table ON tmdb_movies.title = watchmode_table.movie_name 
         JOIN omdb_movies ON tmdb_movies.tmdb_id = omdb_movies.tmdb_id
         WHERE strftime('%Y', tmdb_movies.release_date) = '2024'
     ''')
+    #first join combines tmdb_movies and the watchmode_table by 
+    # matching rows where the title column in tmdb_movies matches the movie_name column in watchmode_table
+    # ensures that you can retrieve additional movie info (user_score and critic_score) from watchmode_table along with the general movie details from tmdb_movies
+
+    #second join links tmdb_movies table with the omdb_movies table using the tmdb_id column in both tables
+    # ensures that movie-related metadata (like genre) from omdb_movies is included alongside the data from tmdb_movies and watchmode_table
 
     data = c.fetchall()
 
